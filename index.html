@@ -1,61 +1,56 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WalkGoo - 걷고 싶은 대한민국</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <header class="hero">
-    <nav class="topbar">
-      <div class="logo" onclick="location.href='index.html'">WalkGoo</div>
-      <div class="nav-text">Walk Korea</div>
+  <header class="site-header">
+    <a class="brand" href="index.html"><span>WalkGoo</span><small>Walk Korea</small></a>
+    <nav class="top-nav">
+      <a href="#themes">테마</a><a href="#places">추천길</a><a href="#ai">AI추천</a><a href="favorites.html">즐겨찾기</a>
     </nav>
-    <div class="hero-content">
+  </header>
+
+  <section class="hero compact">
+    <div class="hero-inner">
       <p class="eyebrow">둘레길 · 섬 여행 · 제주 오름</p>
       <h1>걷고 싶은 대한민국</h1>
       <p class="hero-desc">느리게 걸으며 만나는 길, 바다, 숲, 오름 여행을 소개합니다.</p>
-      <div class="search-box">
-        <input id="searchInput" type="text" placeholder="예: 제주 오름, 청산도, 둘레길" />
-        <button id="searchBtn">검색</button>
-      </div>
+      <form id="searchForm" class="search-box">
+        <input id="searchInput" type="search" placeholder="예: 제주 오름, 청산도, 둘레길" />
+        <button type="submit">검색</button>
+      </form>
     </div>
-  </header>
+  </section>
 
-  <main class="container">
-    <section>
-      <div class="section-title">
-        <h2>테마로 걷기</h2>
-        <p>원하는 여행 스타일을 선택해 보세요.</p>
-      </div>
+  <main>
+    <section id="themes" class="section">
+      <div class="section-head"><div><h2>테마로 걷기</h2><p>원하는 여행 스타일을 선택해 보세요.</p></div></div>
       <div id="themeGrid" class="theme-grid"></div>
     </section>
 
-    <section class="place-section">
-      <div class="section-title row-title">
-        <div>
-          <h2 id="placeTitle">추천 걷기 여행</h2>
-          <p id="placeSubTitle">처음 가도 부담 없는 대표 코스입니다.</p>
-        </div>
-        <select id="sortSelect" aria-label="정렬">
-          <option value="default">기본순</option>
-          <option value="easy">쉬운 코스 먼저</option>
-          <option value="time">짧은 시간 먼저</option>
-        </select>
+    <section id="places" class="section">
+      <div class="section-head">
+        <div><h2 id="placeTitle">추천 걷기 여행</h2><p id="placeSubTitle">정적 데이터와 TourAPI 데이터를 함께 표시합니다.</p></div>
+        <div class="filter-actions"><button class="chip active" data-filter="all">전체</button><button class="chip" data-filter="trail">둘레길</button><button class="chip" data-filter="island">섬</button><button class="chip" data-filter="oreum">오름</button></div>
       </div>
-      <div id="filterChips" class="chips"></div>
       <div id="placeGrid" class="place-grid"></div>
+    </section>
+
+    <section id="ai" class="section ai-panel">
+      <div><h2>걷기 여행 추천 AI</h2><p>원하는 조건을 입력하면 현재 데이터 기준으로 코스를 추천합니다. OpenAI 프록시를 연결하면 GPT 답변으로 확장됩니다.</p></div>
+      <textarea id="aiPrompt" placeholder="예: 부모님과 걷기 좋은 제주 오름 2곳 추천해줘"></textarea>
+      <button id="aiButton">추천 받기</button>
+      <div id="aiResult" class="ai-result">추천 결과가 여기에 표시됩니다.</div>
     </section>
   </main>
 
-  <footer>
-    <p>WalkGoo · 걷고 싶은 대한민국</p>
-    <p>정적 웹앱 샘플 프로젝트</p>
-  </footer>
-
+  <script src="js/config.sample.js"></script>
   <script src="js/data.js"></script>
+  <script src="js/api.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>
-.

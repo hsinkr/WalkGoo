@@ -1,20 +1,18 @@
-# WalkGoo v2
+# WalkGoo v3
 
-## 주요 변경
-- 상단 배너 높이 축소
-- 테마 카드/장소 카드 디자인 개선
-- TourAPI 동적 데이터 연동 구조 추가
-- 카카오맵 연동 구조 추가
-- LocalStorage 즐겨찾기 기능 추가
-- GPT 기반 추천 AI 프록시 연결 구조 추가
+## 변경 내용
+- 정적 PLACES 데이터 제거
+- 둘레길/섬 여행/올레길·오름 목록을 TourAPI `searchKeyword2`로 동적 조회
+- 테마 카드와 필터 버튼도 API 결과 개수 기준으로 표시
+- 상세 화면에서 `detailCommon2`로 추가 상세 정보 보강
+- API 결과를 LocalStorage에 6시간 캐시
+- 즐겨찾기는 API 캐시 데이터 기준으로 동작
 
 ## 설정
-`js/config.sample.js` 파일에 키를 입력합니다.
+`js/config.sample.js`에 TourAPI 서비스키를 입력하세요.
 
 ```js
-TOUR_API_KEY: '한국관광공사 TourAPI 서비스키',
-KAKAO_JS_KEY: '카카오 JavaScript 키',
-AI_PROXY_URL: '서버 프록시 주소'
+TOUR_API_KEY: '발급받은 TourAPI Decoding 서비스키'
 ```
 
-> OpenAI API Key는 브라우저 JS에 직접 넣으면 노출됩니다. 반드시 서버 프록시를 통해 호출하세요.
+GitHub Pages에 올리면 브라우저에서 직접 API를 호출합니다. 서비스키 노출이 걱정되면 백엔드 프록시를 두는 구조로 바꾸는 것이 좋습니다.

@@ -1,9 +1,8 @@
-const THEMES=[{id:'trail',name:'둘레길',icon:'🚶',desc:'대한민국 대표 걷기길'},{id:'island',name:'섬 여행',icon:'🏝️',desc:'배 타고 떠나는 섬 걷기'},{id:'oreum',name:'제주 오름',icon:'⛰️',desc:'제주의 작은 산책 여행'}];
-const PLACES=[
-{id:'jeju-olle',themeId:'trail',title:'제주 올레길',region:'제주 전역',summary:'바다와 마을을 따라 걷는 대표 걷기길',difficulty:'보통',duration:'구간별 상이',distance:'구간별 상이',parking:'구간별 상이',toilet:'구간별 있음',lat:33.4996,lng:126.5312,tags:['둘레길','바닷길','제주'],description:'제주 올레길은 제주 해안과 마을, 숲길을 연결한 대표 걷기 여행 코스입니다.',points:['구간 선택 폭이 넓음','바다와 마을 풍경','혼자 걷기에도 좋음'],cautions:['구간별 교통 확인','날씨와 바람 주의']},
-{id:'jirisan',themeId:'trail',title:'지리산 둘레길',region:'전북·전남·경남',summary:'지리산 자락을 따라 마을과 숲을 걷는 길',difficulty:'보통',duration:'구간별 상이',distance:'전체 약 295km',parking:'구간별 상이',toilet:'구간별 있음',lat:35.337,lng:127.731,tags:['둘레길','숲길','장거리'],description:'지리산 둘레길은 지리산 주변 마을과 숲길을 잇는 장거리 걷기길입니다.',points:['계절 풍경 우수','마을길과 숲길 조화','장거리 걷기 적합'],cautions:['복귀 교통 확인','구간 난이도 확인']},
-{id:'cheongsando',themeId:'island',title:'청산도',region:'전남 완도군',summary:'느리게 걷기 좋은 대표 섬 여행지',difficulty:'쉬움',duration:'코스별 상이',distance:'슬로길 구간별 상이',parking:'선착장 주변',toilet:'주요 지점 있음',lat:34.179,lng:126.858,tags:['섬','슬로길','봄'],description:'청산도는 슬로시티로 알려진 섬으로 바다와 마을길을 천천히 걷기 좋습니다.',points:['봄 유채꽃','바다 풍경','느린 여행'],cautions:['배편 확인 필수','기상 상황 확인']},
-{id:'ulleungdo',themeId:'island',title:'울릉도 해안길',region:'경북 울릉군',summary:'화산섬의 절경을 따라 걷는 섬 여행',difficulty:'보통',duration:'코스별 상이',distance:'코스별 상이',parking:'구간별 상이',toilet:'주요 지점 있음',lat:37.484,lng:130.905,tags:['섬','해안길','전망'],description:'울릉도는 독특한 화산 지형과 바다 절경을 함께 즐길 수 있는 섬 걷기 여행지입니다.',points:['해안 절경','독특한 지형','사진 명소'],cautions:['배편 결항 가능성','경사 구간 주의']},
-{id:'yongnuni',themeId:'oreum',title:'용눈이오름',region:'제주 제주시 구좌읍',summary:'완만한 능선과 탁 트인 풍경이 아름다운 오름',difficulty:'쉬움',duration:'약 40분',distance:'약 1.5km',parking:'가능',toilet:'있음',lat:33.459,lng:126.832,tags:['오름','초보추천','일몰'],description:'용눈이오름은 부드러운 능선과 넓은 풍경으로 초보자도 걷기 좋은 제주 오름입니다.',points:['초보자 추천','일출·일몰 명소','사진 촬영'],cautions:['강풍 주의','우천 후 미끄럼 주의']},
-{id:'saebyeol',themeId:'oreum',title:'새별오름',region:'제주 제주시 애월읍',summary:'억새와 노을이 아름다운 서부 대표 오름',difficulty:'보통',duration:'약 40분',distance:'약 1.2km',parking:'가능',toilet:'있음',lat:33.366,lng:126.357,tags:['오름','억새','노을'],description:'새별오름은 가을 억새와 노을 풍경으로 유명한 제주 서부 대표 오름입니다.',points:['가을 억새','노을 풍경','접근성 좋음'],cautions:['초반 경사 주의','혼잡 시간 피하기']}
+// 정적 장소 데이터는 사용하지 않습니다.
+// 아래 항목은 TourAPI를 어떤 키워드로 조회할지 정하는 '검색 설정'입니다.
+// 실제 화면의 둘레길/섬/오름 카드와 목록 데이터는 TourAPI 응답으로 동적 생성됩니다.
+const WALKGOO_THEME_QUERIES = [
+  { id:'trail', name:'둘레길', icon:'🚶', keywords:['둘레길','해파랑길','남파랑길','서해랑길','지리산 둘레길','북한산 둘레길'] },
+  { id:'island', name:'섬 여행', icon:'🏝️', keywords:['섬 여행','청산도','울릉도','홍도','비진도','덕적도'] },
+  { id:'olle', name:'올레길·오름', icon:'⛰️', keywords:['제주 올레길','제주 오름','새별오름','다랑쉬오름','금오름','용눈이오름'] }
 ];

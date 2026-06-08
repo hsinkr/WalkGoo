@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 360" role="img" aria-label="금오름">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#93b96b"/><stop offset="1" stop-color="#435f42"/></linearGradient></defs>
+  <rect width="700" height="360" fill="url(#g)"/>
+  <circle cx="575" cy="75" r="42" fill="#fff4b8" opacity=".9"/>
+  <path d="M0 280 C150 150 270 210 400 130 C530 55 610 160 700 95 L700 360 L0 360 Z" fill="#244331" opacity=".55"/>
+  <path d="M0 292 C120 248 220 300 340 255 C465 210 570 275 700 235 L700 360 L0 360 Z" fill="#f6f1da" opacity=".75"/>
+  <path d="M85 292 C160 255 230 305 310 270 C380 240 430 275 505 242" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" opacity=".85"/>
+  <text x="42" y="68" font-family="Arial, sans-serif" font-size="34" font-weight="800" fill="white">금오름</text>
+  <text x="44" y="110" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="white" opacity=".82">WalkGoo · CRATER</text>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 360" role="img" aria-label="울릉도">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#4d9cc6"/><stop offset="1" stop-color="#3b6256"/></linearGradient></defs>
+  <rect width="700" height="360" fill="url(#g)"/>
+  <circle cx="575" cy="75" r="42" fill="#fff4b8" opacity=".9"/>
+  <path d="M0 285 C150 140 250 220 370 115 C500 20 620 150 700 75 L700 360 L0 360 Z" fill="#244331" opacity=".55"/>
+  <path d="M0 292 C120 248 220 300 340 255 C465 210 570 275 700 235 L700 360 L0 360 Z" fill="#f6f1da" opacity=".75"/>
+  <path d="M85 292 C160 255 230 305 310 270 C380 240 430 275 505 242" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" opacity=".85"/>
+  <text x="42" y="68" font-family="Arial, sans-serif" font-size="34" font-weight="800" fill="white">울릉도</text>
+  <text x="44" y="110" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="white" opacity=".82">WalkGoo · EAST SEA</text>
+</svg>

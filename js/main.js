@@ -1,17 +1,20 @@
-
 let allPlaces = [];
 let currentFilter = 'all';
+let currentIslandRegion = 'all';
 const themeGrid = document.getElementById('themeGrid');
 const placeGrid = document.getElementById('placeGrid');
 const filterActions = document.getElementById('filterActions');
+const islandRegionActions = document.getElementById('islandRegionActions');
 
 function countByTheme(id){ return allPlaces.filter(p=>p.themeId===id).length; }
+function countByIslandRegion(id){ return allPlaces.filter(p=>p.themeId==='island' && (id==='all' || p.islandRegionId===id)).length; }
+
 function renderThemes(){
   themeGrid.innerHTML = WALKGOO_THEME_QUERIES.map(t => `
     <button class="theme-card" data-theme="${t.id}">
       <div class="icon">${t.icon}</div>
       <h3>${t.name}</h3>
-      <p>${t.keywords.join(' · ')}</p>
+      <p>${t.id === 'island' ? '인천권 · 서해권 · 남해권 · 동해권 · 제주권' : t.keywords.slice(0,6).join(' · ')}</p>
       <small>${countByTheme(t.id)}개 API 결과</small>
     </button>`).join('');
   document.querySelectorAll('.theme-card').forEach(b => b.onclick = () => filterPlaces(b.dataset.theme));
@@ -20,6 +23,28 @@ function renderChips(){
   filterActions.innerHTML = `<button class="chip ${currentFilter==='all'?'active':''}" data-filter="all">전체 ${allPlaces.length}</button>` +
     WALKGOO_THEME_QUERIES.map(t => `<button class="chip ${currentFilter===t.id?'active':''}" data-filter="${t.id}">${t.name} ${countByTheme(t.id)}</button>`).join('');
   document.querySelectorAll('.chip').forEach(c => c.onclick = () => filterPlaces(c.dataset.filter));
+  renderIslandRegions();
+}
+function renderIslandRegions(){
+  if(!islandRegionActions) return;
+  if(currentFilter !== 'island'){
+    islandRegionActions.innerHTML = '';
+    islandRegionActions.style.display = 'none';
+    return;
+  }
+  islandRegionActions.style.display = 'flex';
+  islandRegionActions.innerHTML = `<button class="chip region-chip ${currentIslandRegion==='all'?'active':''}" data-region="all">섬 전체 ${countByIslandRegion('all')}</button>` +
+    ISLAND_REGIONS.map(r => `<button class="chip region-chip ${currentIslandRegion===r.id?'active':''}" data-region="${r.id}">${r.name} ${countByIslandRegion(r.id)}</button>`).join('');
+  document.querySelectorAll('.region-chip').forEach(c => c.onclick = () => {
+    currentIslandRegion = c.dataset.region;
+    renderChips();
+    renderPlaces(getFilteredPlaces());
+  });
+}
+function getFilteredPlaces(){
+  let list = currentFilter === 'all' ? allPlaces : allPlaces.filter(p => p.themeId === currentFilter);
+  if(currentFilter === 'island' && currentIslandRegion !== 'all') list = list.filter(p => p.islandRegionId === currentIslandRegion);
+  return list;
 }
 function attachCardEvents(list){
   document.querySelectorAll('.fav-btn').forEach(b => b.onclick = () => { toggleFav(b.dataset.id); renderPlaces(list); });
@@ -34,16 +59,16 @@ function renderPlaces(list = allPlaces){
 }
 function filterPlaces(theme){
   currentFilter = theme;
+  currentIslandRegion = 'all';
   renderChips();
-  const list = theme === 'all' ? allPlaces : allPlaces.filter(p => p.themeId === theme);
-  renderPlaces(list);
+  renderPlaces(getFilteredPlaces());
   document.getElementById('places').scrollIntoView({behavior:'smooth'});
 }
 document.getElementById('searchForm').onsubmit = e => {
   e.preventDefault();
   const q = document.getElementById('searchInput').value.trim().toLowerCase();
-  const list = allPlaces.filter(p => [p.title,p.region,p.summary,p.keyword,(p.tags||[]).join(' ')].join(' ').toLowerCase().includes(q));
-  currentFilter = 'all'; renderChips(); renderPlaces(list);
+  const list = allPlaces.filter(p => [p.title,p.region,p.summary,p.keyword,p.islandRegionName,(p.tags||[]).join(' ')].join(' ').toLowerCase().includes(q));
+  currentFilter = 'all'; currentIslandRegion = 'all'; renderChips(); renderPlaces(list);
   document.getElementById('places').scrollIntoView({behavior:'smooth'});
 };
 document.getElementById('reloadButton').onclick = async () => loadData(true);
@@ -57,7 +82,7 @@ async function loadData(force=false){
   try{
     allPlaces = await fetchWalkgooPlaces(force);
     renderThemes(); renderChips(); renderPlaces(allPlaces);
-    document.getElementById('placeSubTitle').textContent = `한국관광공사 TourAPI에서 가져온 ${allPlaces.length}개 데이터입니다.`;
+    document.getElementById('placeSubTitle').textContent = `한국관광공사 TourAPI에서 가져온 ${allPlaces.length}개 데이터입니다. 섬 여행은 권역별로 다시 분류됩니다.`;
   }catch(e){
     renderThemes(); renderChips();
     placeGrid.innerHTML = `<div class="error-box"><b>API 데이터를 가져오지 못했습니다.</b><br>${e.message}<br><br>js/config.sample.js 파일에 TOUR_API_KEY를 입력한 뒤 다시 배포해 주세요.</div>`;

@@ -1,7 +1,7 @@
 
 const CFG = window.WALKGOO_CONFIG || {};
-const API_CACHE_KEY = 'walkgoo_api_places_v3';
-const API_CACHE_TIME_KEY = 'walkgoo_api_places_v3_time';
+const API_CACHE_KEY = 'walkgoo_api_places_v4';
+const API_CACHE_TIME_KEY = 'walkgoo_api_places_v4_time';
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 
 function favs(){ return JSON.parse(localStorage.getItem('walkgoo_favs') || '[]'); }
@@ -27,9 +27,21 @@ function apiUrl(path, params){
 }
 function inferThemeByKeyword(keyword){
   const k = keyword || '';
-  if(k.includes('섬') || ['청산도','울릉도','홍도','비진도','덕적도'].some(x=>k.includes(x))) return 'island';
-  if(k.includes('오름') || k.includes('올레')) return 'olle';
+  if((window.ISLAND_REGIONS||[]).some(r => r.keywords.some(x => k.includes(x))) || k.includes('섬')) return 'island';
+  if(k.includes('오름') || k.includes('올레') || (window.OREUM_KEYWORDS||[]).some(x => k.includes(x))) return 'olle';
   return 'trail';
+}
+function inferIslandRegion(place){
+  if(place.themeId !== 'island') return '';
+  const txt = [place.title, place.region, place.keyword].join(' ');
+  const found = (window.ISLAND_REGIONS||[]).find(r =>
+    r.areas.some(a => txt.includes(a)) || r.keywords.some(k => txt.includes(k))
+  );
+  return found ? found.id : 'etc';
+}
+function islandRegionName(id){
+  const r = (window.ISLAND_REGIONS||[]).find(x => x.id === id);
+  return r ? r.name : '기타';
 }
 function themeName(id){ return (WALKGOO_THEME_QUERIES.find(t=>t.id===id)||{}).name || id; }
 function normalizeTourItem(item, themeId, keyword){
@@ -44,6 +56,7 @@ function normalizeTourItem(item, themeId, keyword){
     difficulty:'정보 확인 필요', duration:'정보 확인 필요', distance:'정보 확인 필요', parking:'정보 확인 필요', toilet:'정보 확인 필요',
     lat: Number(item.mapy) || 0, lng: Number(item.mapx) || 0,
     tel: item.tel || '', zipcode: item.zipcode || '',
+    islandRegionId:'', islandRegionName:'',
     tags: ['TourAPI', themeName(themeId), keyword].filter(Boolean),
     description: region,
     points: ['한국관광공사 TourAPI에서 가져온 동적 데이터입니다.'],
@@ -81,7 +94,13 @@ async function fetchWalkgooPlaces(force=false){
   const jobs = [];
   WALKGOO_THEME_QUERIES.forEach(theme => theme.keywords.forEach(keyword => jobs.push(searchKeyword(keyword, theme.id))));
   const settled = await Promise.allSettled(jobs);
-  const places = dedupePlaces(settled.flatMap(x => x.status === 'fulfilled' ? x.value : []));
+  const places = dedupePlaces(settled.flatMap(x => x.status === 'fulfilled' ? x.value : []))
+    .map(p => {
+      p.islandRegionId = inferIslandRegion(p);
+      p.islandRegionName = p.islandRegionId ? islandRegionName(p.islandRegionId) : '';
+      if(p.islandRegionName) p.tags = [...new Set([...(p.tags||[]), p.islandRegionName])];
+      return p;
+    });
   localStorage.setItem(API_CACHE_KEY, JSON.stringify(places));
   localStorage.setItem(API_CACHE_TIME_KEY, String(Date.now()));
   return places;
@@ -113,7 +132,7 @@ function cardHtml(p){
       <span class="api-badge">API 동적 데이터</span>
       <h3>${p.title}</h3>
       <p>${p.summary || p.region}</p>
-      <div class="meta"><b>${p.region}</b><b>${p.themeName || themeName(p.themeId)}</b><b>${p.keyword || ''}</b></div>
+      <div class="meta"><b>${p.region}</b><b>${p.themeName || themeName(p.themeId)}</b>${p.islandRegionName ? `<b>${p.islandRegionName}</b>` : ''}<b>${p.keyword || ''}</b></div>
       <div class="card-actions"><a class="btn primary detail-link" data-place-id="${p.id}" href="detail.html?id=${encodeURIComponent(p.id)}">상세보기</a><button class="btn fav-btn" data-id="${p.id}">${isFav(p.id) ? '★ 저장됨' : '☆ 즐겨찾기'}</button></div>
     </div>
   </article>`;

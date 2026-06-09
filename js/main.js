@@ -85,7 +85,7 @@ async function loadData(force=false){
     document.getElementById('placeSubTitle').textContent = `한국관광공사 TourAPI에서 가져온 ${allPlaces.length}개 데이터입니다. 섬 여행은 권역별로 다시 분류됩니다.`;
   }catch(e){
     renderThemes(); renderChips();
-    placeGrid.innerHTML = `<div class="error-box"><b>API 데이터를 가져오지 못했습니다.</b><br>${e.message}<br><br>js/config.sample.js 파일에 TOUR_API_KEY를 입력한 뒤 다시 배포해 주세요.</div>`;
+    placeGrid.innerHTML = `<div class="error-box"><b>API 데이터를 가져오지 못했습니다.</b><br>${e.message}<br><br>js/config.js 파일에 TOUR_API_KEY를 입력한 뒤 다시 배포해 주세요.</div>`;
     document.getElementById('placeSubTitle').textContent = 'TourAPI 서비스키 설정이 필요합니다.';
   }
 }

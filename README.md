@@ -9,7 +9,7 @@
 - 즐겨찾기는 API 캐시 데이터 기준으로 동작
 
 ## 설정
-`js/config.sample.js`에 TourAPI 서비스키를 입력하세요.
+`js/config.js`에 TourAPI 서비스키를 입력하세요.
 
 ```js
 TOUR_API_KEY: '발급받은 TourAPI Decoding 서비스키'

@@ -1,6 +1,6 @@
 const CFG = window.WALKGOO_CONFIG || {};
-const API_CACHE_KEY = 'walkgoo_api_places_v5';
-const API_CACHE_TIME_KEY = 'walkgoo_api_places_v5_time';
+const API_CACHE_KEY = 'walkgoo_api_places_v6';
+const API_CACHE_TIME_KEY = 'walkgoo_api_places_v6_time';
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 
 function favs(){ return JSON.parse(localStorage.getItem('walkgoo_favs') || '[]'); }
@@ -98,19 +98,82 @@ function normalizeTourItem(item, themeId, keyword){
   };
 }
 
-async function searchKeyword(keyword, themeId){
+const EXTRA_TRAIL_KEYWORDS = [
+  // 장거리 걷기길
+  '해파랑길','해파랑길 코스','남파랑길','남파랑길 코스','서해랑길','서해랑길 코스','코리아둘레길',
+  '지리산둘레길','지리산 둘레길','북한산둘레길','북한산 둘레길','한양도성길','DMZ 평화의 길',
+  '제주올레길','제주 올레길','갈맷길','대청호오백리길','대청호 오백리길',
+
+  // 사용자가 요청한 저수지/호수/수변 걷기길 계열
+  '구이저수지 둘레길','구이저수지','저수지 둘레길','호수 둘레길','호반길','수변길','수변 산책로',
+  '생태탐방로','생태길','숲길','마실길','누리길','트레킹길','탐방로','산책로',
+  '의암호 둘레길','옥정호 둘레길','세량지 산책로','주산지 산책로','청풍호 자드락길'
+];
+
+const TRAIL_TITLE_PATTERNS = [
+  '둘레길','해파랑','남파랑','서해랑','코리아둘레','지리산둘레','북한산둘레','한양도성','DMZ 평화',
+  '올레길','갈맷길','오백리길','자드락길','마실길','누리길','숲길','바람길','탐방로','트레킹','산책로',
+  '저수지','호수','호반','수변','생태길','생태탐방','수목원','휴양림'
+];
+
+function unique(arr){ return [...new Set((arr || []).filter(Boolean))]; }
+
+async function allSettledLimited(tasks, limit=8){
+  const results = new Array(tasks.length);
+  let next = 0;
+  async function worker(){
+    while(next < tasks.length){
+      const idx = next++;
+      try { results[idx] = { status:'fulfilled', value: await tasks[idx]() }; }
+      catch(e){ results[idx] = { status:'rejected', reason:e }; }
+    }
+  }
+  await Promise.all(Array.from({length: Math.min(limit, tasks.length)}, worker));
+  return results;
+}
+function isTrailLike(place){
+  if(place.themeId !== 'trail') return true;
+  const txt = [place.title, place.region, place.summary, place.keyword, (place.tags||[]).join(' ')].join(' ');
+  return TRAIL_TITLE_PATTERNS.some(k => txt.includes(k));
+}
+function trailKeywords(){
+  const base = (window.WALKGOO_THEME_QUERIES || []).find(t => t.id === 'trail')?.keywords || [];
+  return unique([...base, ...EXTRA_TRAIL_KEYWORDS]);
+}
+function contentTypesForTheme(themeId){
+  // 12 관광지, 25 여행코스, 28 레포츠. 둘레길은 세 분류에 흩어져 있어 모두 조회합니다.
+  if(themeId === 'trail') return ['12','25','28',''];
+  // 오름/올레도 관광지·코스에 섞여 있어 12/25를 함께 조회합니다.
+  if(themeId === 'olle') return ['12','25',''];
+  // 섬은 관광지 중심이지만 누락 방지를 위해 전체 검색도 같이 수행합니다.
+  if(themeId === 'island') return ['12',''];
+  return ['12'];
+}
+
+async function searchKeywordOnce(keyword, themeId, contentTypeId, rows='100'){
   if(!CFG.TOUR_API_KEY) return [];
-  // contentTypeId=12: 관광지. 키워드 검색 정확도를 높입니다.
-  const url = apiUrl('/searchKeyword2', {
-    numOfRows:'20', pageNo:'1', arrange:'O', contentTypeId:'12', keyword
-  });
-  const j = await fetchJson(url, `키워드검색(${keyword})`);
+  const params = { numOfRows: rows, pageNo:'1', arrange:'O', keyword };
+  if(contentTypeId) params.contentTypeId = contentTypeId;
+  const url = apiUrl('/searchKeyword2', params);
+  const label = `키워드검색(${keyword}${contentTypeId ? '/' + contentTypeId : '/전체'})`;
+  const j = await fetchJson(url, label);
   const body = j?.response?.body;
   let items = body?.items?.item || [];
   const totalCount = Number(body?.totalCount || 0);
   if(!Array.isArray(items)) items = items ? [items] : [];
-  debugLog(keyword, 'totalCount=', totalCount, 'items=', items.length);
+  debugLog(keyword, contentTypeId || '전체', 'totalCount=', totalCount, 'items=', items.length);
   return items.map(x => normalizeTourItem(x, themeId || inferThemeByKeyword(keyword), keyword));
+}
+
+async function searchKeyword(keyword, themeId){
+  const types = contentTypesForTheme(themeId);
+  const jobs = types.map(ct => searchKeywordOnce(keyword, themeId, ct));
+  const settled = await Promise.allSettled(jobs);
+  const failed = settled.filter(x => x.status === 'rejected');
+  if(failed.length) debugWarn(`키워드 ${keyword} 일부 실패`, failed.map(x => x.reason?.message || x.reason));
+  let result = dedupePlaces(settled.flatMap(x => x.status === 'fulfilled' ? x.value : []));
+  if(themeId === 'trail') result = result.filter(isTrailLike);
+  return result;
 }
 
 function dedupePlaces(list){
@@ -130,8 +193,12 @@ async function fetchWalkgooPlaces(force=false){
   }
   if(!CFG.TOUR_API_KEY) throw new Error('TourAPI 서비스키가 설정되지 않았습니다. js/config.js의 TOUR_API_KEY에 키를 입력하세요.');
   const jobs = [];
-  WALKGOO_THEME_QUERIES.forEach(theme => theme.keywords.forEach(keyword => jobs.push(searchKeyword(keyword, theme.id))));
-  const settled = await Promise.allSettled(jobs);
+  WALKGOO_THEME_QUERIES.forEach(theme => {
+    const keywords = theme.id === 'trail' ? trailKeywords() : theme.keywords;
+    unique(keywords).forEach(keyword => jobs.push(() => searchKeyword(keyword, theme.id)));
+  });
+  // data.go.kr/TourAPI 호출이 너무 한꺼번에 몰리면 실패/누락이 생길 수 있어 동시 호출 수를 제한합니다.
+  const settled = await allSettledLimited(jobs, Number(CFG.API_CONCURRENCY || 8));
   const failed = settled.filter(x => x.status === 'rejected');
   if(failed.length) debugWarn('실패한 API 호출', failed.map(x => x.reason?.message || x.reason));
   const places = dedupePlaces(settled.flatMap(x => x.status === 'fulfilled' ? x.value : []))

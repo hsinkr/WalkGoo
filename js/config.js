@@ -1,12 +1,13 @@
 window.WALKGOO_CONFIG = {
-  // 한국관광공사 TourAPI 4.0 서비스키
-  // data.go.kr에서 '국문 관광정보 서비스_GW' 활용신청 후 받은 Decoding 키 권장
+  // 한국관광공사 TourAPI 서비스키
+  // 중요: data.go.kr에서 받은 Decoding 키를 권장합니다.
+  // 이미 %2F, %3D 같은 문자가 들어있는 Encoding 키도 자동 처리합니다.
   TOUR_API_KEY: 'EHUKk9PAVNzpXikgwOdKVxbYhgfzW8SLrkVLV8KhaKOk29bX9hDaGMwXjQWEnarNUejsgLD9T2yrBLdsCH2KTA==',
   TOUR_API_BASE: 'https://apis.data.go.kr/B551011/KorService2',
 
-  // detail.html에서 지도 표시용. 없으면 카카오맵 링크 버튼으로 대체됩니다.
   KAKAO_JS_KEY: '',
+  AI_PROXY_URL: '',
 
-  // OpenAI 키는 브라우저에 직접 넣지 말고 서버 프록시 URL을 사용하세요.
-  AI_PROXY_URL: ''
+  // API 호출 문제 확인용. true면 브라우저 개발자도구 Console에 상세 로그 표시
+  DEBUG_API: true
 };

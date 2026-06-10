@@ -1,5 +1,6 @@
 {
-  "generatedAt": "starter",
+  "generatedAt": "2026-06-10T20:14:48.188Z",
+  "count": 26,
   "places": [
     {
       "id": "res-gui",
@@ -481,5 +482,6 @@
       ],
       "source": "custom"
     }
-  ]
+  ],
+  "errors": []
 }

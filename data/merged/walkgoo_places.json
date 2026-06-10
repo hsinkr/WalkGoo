@@ -1,0 +1,485 @@
+{
+  "generatedAt": "starter",
+  "places": [
+    {
+      "id": "res-gui",
+      "title": "구이저수지 둘레길",
+      "category": "reservoir",
+      "themeId": "water",
+      "themeName": "저수지·호수길",
+      "region": "전북 완주군",
+      "summary": "구이저수지를 따라 걷는 완주 대표 수변 산책길입니다.",
+      "distance": "약 8.8km",
+      "duration": "약 2시간 30분",
+      "difficulty": "쉬움",
+      "lat": 35.7279,
+      "lng": 127.1214,
+      "tags": [
+        "저수지",
+        "수변길",
+        "둘레길",
+        "완주"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "res-daecheong-500",
+      "title": "대청호 오백리길",
+      "category": "lake",
+      "themeId": "water",
+      "themeName": "저수지·호수길",
+      "region": "대전·충북 옥천·보은·청주",
+      "summary": "대청호 주변 마을과 수변 풍경을 잇는 장거리 걷기길입니다.",
+      "distance": "구간별 상이",
+      "duration": "구간별 상이",
+      "difficulty": "보통",
+      "lat": 36.474,
+      "lng": 127.483,
+      "tags": [
+        "호수",
+        "수변길",
+        "장거리",
+        "대청호"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "res-uiam",
+      "title": "의암호 둘레길",
+      "category": "lake",
+      "themeId": "water",
+      "themeName": "저수지·호수길",
+      "region": "강원 춘천시",
+      "summary": "춘천 의암호를 따라 자전거길과 산책길이 이어지는 수변 코스입니다.",
+      "distance": "구간별 상이",
+      "duration": "구간별 상이",
+      "difficulty": "쉬움",
+      "lat": 37.868,
+      "lng": 127.706,
+      "tags": [
+        "호수",
+        "춘천",
+        "수변길"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "res-soyang",
+      "title": "소양호 주변길",
+      "category": "lake",
+      "themeId": "water",
+      "themeName": "저수지·호수길",
+      "region": "강원 춘천시·양구군·인제군",
+      "summary": "소양호 주변 전망과 마을길을 함께 즐길 수 있는 수변 여행지입니다.",
+      "distance": "구간별 상이",
+      "duration": "구간별 상이",
+      "difficulty": "보통",
+      "lat": 37.945,
+      "lng": 127.824,
+      "tags": [
+        "호수",
+        "소양호",
+        "수변길"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "res-paldang",
+      "title": "팔당호 수변길",
+      "category": "lake",
+      "themeId": "water",
+      "themeName": "저수지·호수길",
+      "region": "경기 남양주시·양평군·광주시",
+      "summary": "한강 팔당호 주변을 따라 걷기 좋은 수도권 수변 코스입니다.",
+      "distance": "구간별 상이",
+      "duration": "구간별 상이",
+      "difficulty": "쉬움",
+      "lat": 37.519,
+      "lng": 127.278,
+      "tags": [
+        "호수",
+        "수변길",
+        "수도권"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "res-chungju",
+      "title": "충주호 종댕이길",
+      "category": "lake",
+      "themeId": "water",
+      "themeName": "저수지·호수길",
+      "region": "충북 충주시",
+      "summary": "충주호 풍경을 조망하며 숲과 호반을 걷는 길입니다.",
+      "distance": "약 7.5km",
+      "duration": "약 2시간 30분",
+      "difficulty": "보통",
+      "lat": 36.984,
+      "lng": 127.993,
+      "tags": [
+        "충주호",
+        "호반길",
+        "숲길"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "res-gyeongan",
+      "title": "경안천 습지생태공원 수변길",
+      "category": "river",
+      "themeId": "water",
+      "themeName": "저수지·호수길",
+      "region": "경기 광주시",
+      "summary": "습지와 하천 생태를 가까이에서 볼 수 있는 평탄한 수변 산책길입니다.",
+      "distance": "구간별 상이",
+      "duration": "1~2시간",
+      "difficulty": "쉬움",
+      "lat": 37.397,
+      "lng": 127.278,
+      "tags": [
+        "수변길",
+        "생태길",
+        "습지"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "res-tancheon",
+      "title": "탄천 산책길",
+      "category": "river",
+      "themeId": "urban",
+      "themeName": "도시 산책길",
+      "region": "경기 성남시·서울 송파구",
+      "summary": "도심 접근성이 좋은 하천변 산책길입니다.",
+      "distance": "구간별 상이",
+      "duration": "구간별 상이",
+      "difficulty": "쉬움",
+      "lat": 37.413,
+      "lng": 127.127,
+      "tags": [
+        "도시산책",
+        "하천길",
+        "수변길"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "res-seokchon",
+      "title": "석촌호수 산책로",
+      "category": "lake",
+      "themeId": "urban",
+      "themeName": "도시 산책길",
+      "region": "서울 송파구",
+      "summary": "도심 속 호수 둘레를 가볍게 걷기 좋은 산책로입니다.",
+      "distance": "약 2.5km",
+      "duration": "약 40분",
+      "difficulty": "쉬움",
+      "lat": 37.509,
+      "lng": 127.104,
+      "tags": [
+        "호수",
+        "도시산책",
+        "서울"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "res-gwanggyo",
+      "title": "광교호수공원 산책길",
+      "category": "lake",
+      "themeId": "urban",
+      "themeName": "도시 산책길",
+      "region": "경기 수원시",
+      "summary": "호수공원 주변을 따라 걷는 가족 친화형 산책 코스입니다.",
+      "distance": "구간별 상이",
+      "duration": "1~2시간",
+      "difficulty": "쉬움",
+      "lat": 37.285,
+      "lng": 127.066,
+      "tags": [
+        "호수공원",
+        "도시산책",
+        "수원"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "isl-deokjeok",
+      "title": "덕적도",
+      "themeId": "island",
+      "themeName": "섬 여행",
+      "region": "인천 옹진군",
+      "zone": "인천권",
+      "summary": "서해 바다와 숲길을 함께 즐길 수 있는 인천권 대표 섬입니다.",
+      "lat": 37.226,
+      "lng": 126.148,
+      "tags": [
+        "섬",
+        "인천권",
+        "해안길"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "isl-baengnyeong",
+      "title": "백령도",
+      "themeId": "island",
+      "themeName": "섬 여행",
+      "region": "인천 옹진군",
+      "zone": "인천권",
+      "summary": "서해 최북단의 지질·해안 경관이 뛰어난 섬입니다.",
+      "lat": 37.968,
+      "lng": 124.663,
+      "tags": [
+        "섬",
+        "인천권",
+        "서해"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "isl-seonyudo",
+      "title": "선유도",
+      "themeId": "island",
+      "themeName": "섬 여행",
+      "region": "전북 군산시",
+      "zone": "서해권",
+      "summary": "고군산군도의 바다 풍경과 섬길을 즐길 수 있는 여행지입니다.",
+      "lat": 35.811,
+      "lng": 126.416,
+      "tags": [
+        "섬",
+        "서해권",
+        "고군산군도"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "isl-cheongsando",
+      "title": "청산도",
+      "themeId": "island",
+      "themeName": "섬 여행",
+      "region": "전남 완도군",
+      "zone": "남해권",
+      "summary": "슬로길과 마을길이 아름다운 남해권 걷기 여행지입니다.",
+      "lat": 34.18,
+      "lng": 126.858,
+      "tags": [
+        "섬",
+        "남해권",
+        "슬로길"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "isl-bijindo",
+      "title": "비진도",
+      "themeId": "island",
+      "themeName": "섬 여행",
+      "region": "경남 통영시",
+      "zone": "남해권",
+      "summary": "해변과 전망길이 어우러진 통영의 아름다운 섬입니다.",
+      "lat": 34.725,
+      "lng": 128.462,
+      "tags": [
+        "섬",
+        "남해권",
+        "통영"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "isl-ulleung",
+      "title": "울릉도",
+      "themeId": "island",
+      "themeName": "섬 여행",
+      "region": "경북 울릉군",
+      "zone": "동해권",
+      "summary": "해안 산책로와 산악 경관이 뛰어난 동해 대표 섬입니다.",
+      "lat": 37.484,
+      "lng": 130.905,
+      "tags": [
+        "섬",
+        "동해권",
+        "울릉도"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "isl-udo",
+      "title": "우도",
+      "themeId": "island",
+      "themeName": "섬 여행",
+      "region": "제주 제주시",
+      "zone": "제주권",
+      "summary": "가볍게 걷고 자전거로 둘러보기 좋은 제주 부속섬입니다.",
+      "lat": 33.506,
+      "lng": 126.955,
+      "tags": [
+        "섬",
+        "제주권",
+        "우도"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "isl-gapado",
+      "title": "가파도",
+      "themeId": "island",
+      "themeName": "섬 여행",
+      "region": "제주 서귀포시",
+      "zone": "제주권",
+      "summary": "평탄한 섬길과 청보리 풍경으로 유명한 제주 부속섬입니다.",
+      "lat": 33.17,
+      "lng": 126.27,
+      "tags": [
+        "섬",
+        "제주권",
+        "걷기좋은섬"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "oreum-yongnuni",
+      "title": "용눈이오름",
+      "themeId": "oreum",
+      "themeName": "제주 오름",
+      "region": "제주 제주시 구좌읍",
+      "summary": "부드러운 능선과 탁 트인 전망이 좋은 대표 오름입니다.",
+      "duration": "약 40분",
+      "difficulty": "쉬움",
+      "lat": 33.459,
+      "lng": 126.833,
+      "tags": [
+        "오름",
+        "제주",
+        "초보추천"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "oreum-darangswi",
+      "title": "다랑쉬오름",
+      "themeId": "oreum",
+      "themeName": "제주 오름",
+      "region": "제주 제주시 구좌읍",
+      "summary": "분화구와 동부 오름 군락을 조망하기 좋은 오름입니다.",
+      "duration": "약 1시간",
+      "difficulty": "보통",
+      "lat": 33.477,
+      "lng": 126.821,
+      "tags": [
+        "오름",
+        "제주동부"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "oreum-saebyeol",
+      "title": "새별오름",
+      "themeId": "oreum",
+      "themeName": "제주 오름",
+      "region": "제주 제주시 애월읍",
+      "summary": "억새와 노을 풍경으로 유명한 서부권 오름입니다.",
+      "duration": "약 40분",
+      "difficulty": "쉬움",
+      "lat": 33.366,
+      "lng": 126.357,
+      "tags": [
+        "오름",
+        "억새",
+        "일몰"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "oreum-geum",
+      "title": "금오름",
+      "themeId": "oreum",
+      "themeName": "제주 오름",
+      "region": "제주 제주시 한림읍",
+      "summary": "정상 분화구와 서부 풍경이 아름다운 인기 오름입니다.",
+      "duration": "약 40분",
+      "difficulty": "쉬움",
+      "lat": 33.354,
+      "lng": 126.305,
+      "tags": [
+        "오름",
+        "제주서부",
+        "전망"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "oreum-ttarabi",
+      "title": "따라비오름",
+      "themeId": "oreum",
+      "themeName": "제주 오름",
+      "region": "제주 서귀포시 표선면",
+      "summary": "가을 억새와 능선 풍경이 좋은 오름입니다.",
+      "duration": "약 1시간",
+      "difficulty": "보통",
+      "lat": 33.388,
+      "lng": 126.752,
+      "tags": [
+        "오름",
+        "억새",
+        "표선"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "oreum-baekyaki",
+      "title": "백약이오름",
+      "themeId": "oreum",
+      "themeName": "제주 오름",
+      "region": "제주 서귀포시 표선면",
+      "summary": "동부 오름 조망이 좋은 비교적 걷기 좋은 오름입니다.",
+      "duration": "약 1시간",
+      "difficulty": "보통",
+      "lat": 33.437,
+      "lng": 126.789,
+      "tags": [
+        "오름",
+        "전망",
+        "제주동부"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "oreum-abu",
+      "title": "아부오름",
+      "themeId": "oreum",
+      "themeName": "제주 오름",
+      "region": "제주 제주시 구좌읍",
+      "summary": "완만한 둘레와 분화구 숲이 인상적인 오름입니다.",
+      "duration": "약 30분",
+      "difficulty": "쉬움",
+      "lat": 33.448,
+      "lng": 126.779,
+      "tags": [
+        "오름",
+        "초보추천"
+      ],
+      "source": "custom"
+    },
+    {
+      "id": "oreum-geomun",
+      "title": "거문오름",
+      "themeId": "oreum",
+      "themeName": "제주 오름",
+      "region": "제주 제주시 조천읍",
+      "summary": "세계자연유산 지역으로 예약·탐방 제한 확인이 필요한 오름입니다.",
+      "duration": "코스별 상이",
+      "difficulty": "보통",
+      "lat": 33.456,
+      "lng": 126.714,
+      "tags": [
+        "오름",
+        "세계자연유산",
+        "예약필요"
+      ],
+      "source": "custom"
+    }
+  ]
+}

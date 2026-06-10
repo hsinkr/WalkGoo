@@ -10,18 +10,18 @@ function countByTheme(id){ return allPlaces.filter(p=>p.themeId===id).length; }
 function countByIslandRegion(id){ return allPlaces.filter(p=>p.themeId==='island' && (id==='all' || p.islandRegionId===id)).length; }
 
 function renderThemes(){
-  themeGrid.innerHTML = WALKGOO_THEME_QUERIES.map(t => `
+  themeGrid.innerHTML = WALKGOO_THEMES.map(t => `
     <button class="theme-card" data-theme="${t.id}">
       <div class="icon">${t.icon}</div>
       <h3>${t.name}</h3>
-      <p>${t.id === 'island' ? '인천권 · 서해권 · 남해권 · 동해권 · 제주권' : t.keywords.slice(0,6).join(' · ')}</p>
-      <small>${countByTheme(t.id)}개 API 결과</small>
+      <p>${t.desc || ''}</p>
+      <small>${countByTheme(t.id)}개 데이터</small>
     </button>`).join('');
   document.querySelectorAll('.theme-card').forEach(b => b.onclick = () => filterPlaces(b.dataset.theme));
 }
 function renderChips(){
   filterActions.innerHTML = `<button class="chip ${currentFilter==='all'?'active':''}" data-filter="all">전체 ${allPlaces.length}</button>` +
-    WALKGOO_THEME_QUERIES.map(t => `<button class="chip ${currentFilter===t.id?'active':''}" data-filter="${t.id}">${t.name} ${countByTheme(t.id)}</button>`).join('');
+    WALKGOO_THEMES.map(t => `<button class="chip ${currentFilter===t.id?'active':''}" data-filter="${t.id}">${t.name} ${countByTheme(t.id)}</button>`).join('');
   document.querySelectorAll('.chip').forEach(c => c.onclick = () => filterPlaces(c.dataset.filter));
   renderIslandRegions();
 }
@@ -78,15 +78,15 @@ document.getElementById('aiButton').onclick = async () => {
   document.getElementById('aiResult').textContent = await aiRecommend(v, allPlaces);
 };
 async function loadData(force=false){
-  placeGrid.innerHTML = '<div class="loading">TourAPI에서 둘레길·섬·올레길·오름 데이터를 가져오는 중입니다...</div>';
+  placeGrid.innerHTML = '<div class="loading">WalkGoo 캐시/보강 데이터와 선택적 API 데이터를 불러오는 중입니다...</div>';
   try{
     allPlaces = await fetchWalkgooPlaces(force);
     renderThemes(); renderChips(); renderPlaces(allPlaces);
-    document.getElementById('placeSubTitle').textContent = `한국관광공사 TourAPI에서 가져온 ${allPlaces.length}개 데이터입니다. 섬 여행은 권역별로 다시 분류됩니다.`;
+    document.getElementById('placeSubTitle').textContent = `캐시/보강/API를 병합한 ${allPlaces.length}개 데이터입니다. API 한도 초과 시에도 캐시 데이터로 표시됩니다.`;
   }catch(e){
     renderThemes(); renderChips();
-    placeGrid.innerHTML = `<div class="error-box"><b>API 데이터를 가져오지 못했습니다.</b><br>${e.message}<br><br>js/config.js 파일에 TOUR_API_KEY를 입력한 뒤 다시 배포해 주세요.</div>`;
-    document.getElementById('placeSubTitle').textContent = 'TourAPI 서비스키 설정이 필요합니다.';
+    placeGrid.innerHTML = `<div class="error-box"><b>데이터를 가져오지 못했습니다.</b><br>${e.message}<br><br>data/merged/walkgoo_places.json 또는 data/custom/*.json을 확인해 주세요.</div>`;
+    document.getElementById('placeSubTitle').textContent = '캐시 또는 보강 데이터 확인이 필요합니다.';
   }
 }
 loadData();

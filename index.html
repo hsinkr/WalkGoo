@@ -12,15 +12,15 @@
     <nav class="top-nav"><a href="#themes">테마</a><a href="#places">API 추천길</a><a href="#ai">AI추천</a><a href="favorites.html">즐겨찾기</a></nav>
   </header>
   <section class="hero compact"><div class="hero-inner">
-    <p class="eyebrow">TourAPI 기반 동적 걷기 여행</p><h1>걷고 싶은 대한민국</h1>
-    <p class="hero-desc">둘레길, 섬 여행, 올레길·오름 정보를 한국관광공사 API에서 가져옵니다.</p>
+    <p class="eyebrow">캐시 + API 기반 걷기 여행</p><h1>걷고 싶은 대한민국</h1>
+    <p class="hero-desc">두루누비·TourAPI·보강 JSON을 병합해 API 한도 초과 시에도 안정적으로 표시합니다.</p>
     <form id="searchForm" class="search-box"><input id="searchInput" type="search" placeholder="예: 제주 오름, 청산도, 둘레길" /><button type="submit">검색</button></form>
   </div></section>
   <main>
-    <section id="themes" class="section"><div class="section-head"><div><h2>API 테마</h2><p>테마 카드는 API 조회 결과 개수와 함께 동적으로 표시됩니다.</p></div></div><div id="themeGrid" class="theme-grid"></div></section>
-    <section id="places" class="section"><div class="section-head"><div><h2 id="placeTitle">TourAPI 걷기 여행 데이터</h2><p id="placeSubTitle">TourAPI 데이터를 불러오는 중입니다.</p></div><div class="section-tools"><button id="reloadButton" class="btn">API 새로고침</button><div id="filterActions" class="filter-actions"></div>
+    <section id="themes" class="section"><div class="section-head"><div><h2>WalkGoo 테마</h2><p>테마 카드는 캐시/보강/API 병합 결과 개수와 함께 표시됩니다.</p></div></div><div id="themeGrid" class="theme-grid"></div></section>
+    <section id="places" class="section"><div class="section-head"><div><h2 id="placeTitle">WalkGoo 걷기 여행 데이터</h2><p id="placeSubTitle">캐시 데이터를 불러오는 중입니다.</p></div><div class="section-tools"><button id="reloadButton" class="btn">데이터 새로고침</button><div id="filterActions" class="filter-actions"></div>
       <div id="islandRegionActions" class="filter-actions island-region-actions"></div></div></div><div id="placeGrid" class="place-grid"></div></section>
-    <section id="ai" class="section ai-panel"><div><h2>걷기 여행 추천 AI</h2><p>현재 API로 가져온 데이터 기준으로 추천합니다. AI 프록시를 연결하면 GPT 답변으로 확장됩니다.</p></div><textarea id="aiPrompt" placeholder="예: 부모님과 걷기 좋은 제주 오름 2곳 추천해줘"></textarea><button id="aiButton">추천 받기</button><div id="aiResult" class="ai-result">추천 결과가 여기에 표시됩니다.</div></section>
+    <section id="ai" class="section ai-panel"><div><h2>걷기 여행 추천 AI</h2><p>현재 WalkGoo 데이터 기준으로 추천합니다. AI 프록시를 연결하면 GPT 답변으로 확장됩니다.</p></div><textarea id="aiPrompt" placeholder="예: 부모님과 걷기 좋은 제주 오름 2곳 추천해줘"></textarea><button id="aiButton">추천 받기</button><div id="aiResult" class="ai-result">추천 결과가 여기에 표시됩니다.</div></section>
   </main>
   <script src="js/config.js"></script><script src="js/data.js"></script><script src="js/api.js"></script><script src="js/main.js"></script>
 </body></html>

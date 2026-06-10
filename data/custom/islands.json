@@ -1,0 +1,138 @@
+[
+  {
+    "id": "isl-deokjeok",
+    "title": "덕적도",
+    "themeId": "island",
+    "themeName": "섬 여행",
+    "region": "인천 옹진군",
+    "zone": "인천권",
+    "summary": "서해 바다와 숲길을 함께 즐길 수 있는 인천권 대표 섬입니다.",
+    "lat": 37.226,
+    "lng": 126.148,
+    "tags": [
+      "섬",
+      "인천권",
+      "해안길"
+    ],
+    "source": "custom"
+  },
+  {
+    "id": "isl-baengnyeong",
+    "title": "백령도",
+    "themeId": "island",
+    "themeName": "섬 여행",
+    "region": "인천 옹진군",
+    "zone": "인천권",
+    "summary": "서해 최북단의 지질·해안 경관이 뛰어난 섬입니다.",
+    "lat": 37.968,
+    "lng": 124.663,
+    "tags": [
+      "섬",
+      "인천권",
+      "서해"
+    ],
+    "source": "custom"
+  },
+  {
+    "id": "isl-seonyudo",
+    "title": "선유도",
+    "themeId": "island",
+    "themeName": "섬 여행",
+    "region": "전북 군산시",
+    "zone": "서해권",
+    "summary": "고군산군도의 바다 풍경과 섬길을 즐길 수 있는 여행지입니다.",
+    "lat": 35.811,
+    "lng": 126.416,
+    "tags": [
+      "섬",
+      "서해권",
+      "고군산군도"
+    ],
+    "source": "custom"
+  },
+  {
+    "id": "isl-cheongsando",
+    "title": "청산도",
+    "themeId": "island",
+    "themeName": "섬 여행",
+    "region": "전남 완도군",
+    "zone": "남해권",
+    "summary": "슬로길과 마을길이 아름다운 남해권 걷기 여행지입니다.",
+    "lat": 34.18,
+    "lng": 126.858,
+    "tags": [
+      "섬",
+      "남해권",
+      "슬로길"
+    ],
+    "source": "custom"
+  },
+  {
+    "id": "isl-bijindo",
+    "title": "비진도",
+    "themeId": "island",
+    "themeName": "섬 여행",
+    "region": "경남 통영시",
+    "zone": "남해권",
+    "summary": "해변과 전망길이 어우러진 통영의 아름다운 섬입니다.",
+    "lat": 34.725,
+    "lng": 128.462,
+    "tags": [
+      "섬",
+      "남해권",
+      "통영"
+    ],
+    "source": "custom"
+  },
+  {
+    "id": "isl-ulleung",
+    "title": "울릉도",
+    "themeId": "island",
+    "themeName": "섬 여행",
+    "region": "경북 울릉군",
+    "zone": "동해권",
+    "summary": "해안 산책로와 산악 경관이 뛰어난 동해 대표 섬입니다.",
+    "lat": 37.484,
+    "lng": 130.905,
+    "tags": [
+      "섬",
+      "동해권",
+      "울릉도"
+    ],
+    "source": "custom"
+  },
+  {
+    "id": "isl-udo",
+    "title": "우도",
+    "themeId": "island",
+    "themeName": "섬 여행",
+    "region": "제주 제주시",
+    "zone": "제주권",
+    "summary": "가볍게 걷고 자전거로 둘러보기 좋은 제주 부속섬입니다.",
+    "lat": 33.506,
+    "lng": 126.955,
+    "tags": [
+      "섬",
+      "제주권",
+      "우도"
+    ],
+    "source": "custom"
+  },
+  {
+    "id": "isl-gapado",
+    "title": "가파도",
+    "themeId": "island",
+    "themeName": "섬 여행",
+    "region": "제주 서귀포시",
+    "zone": "제주권",
+    "summary": "평탄한 섬길과 청보리 풍경으로 유명한 제주 부속섬입니다.",
+    "lat": 33.17,
+    "lng": 126.27,
+    "tags": [
+      "섬",
+      "제주권",
+      "걷기좋은섬"
+    ],
+    "source": "custom"
+  }
+]

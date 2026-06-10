@@ -1,31 +1,60 @@
-# WalkGoo v3
+# WalkGoo v9 - 캐시 + API + 보강 데이터 구조
 
-## 변경 내용
-- 정적 PLACES 데이터 제거
-- 둘레길/섬 여행/올레길·오름 목록을 TourAPI `searchKeyword2`로 동적 조회
-- 테마 카드와 필터 버튼도 API 결과 개수 기준으로 표시
-- 상세 화면에서 `detailCommon2`로 추가 상세 정보 보강
-- API 결과를 LocalStorage에 6시간 캐시
-- 즐겨찾기는 API 캐시 데이터 기준으로 동작
+WalkGoo v9는 브라우저에서 TourAPI를 매번 직접 호출하지 않고, `data/merged/walkgoo_places.json`을 우선 표시합니다.  
+GitHub Actions가 두루누비 API와 TourAPI를 주기적으로 호출해 캐시 JSON을 갱신하고, API에 없는 구이저수지 둘레길·오름·섬 정보는 `data/custom/*.json`으로 보강합니다.
 
-## 설정
-`js/config.js`에 TourAPI 서비스키를 입력하세요.
+## 핵심 구조
 
-```js
-TOUR_API_KEY: '발급받은 TourAPI Decoding 서비스키'
+```text
+data/
+├─ custom/
+│  ├─ reservoir_trails.json   # 저수지·호수·수변길 보강 데이터
+│  ├─ islands.json            # 섬 여행 보강 데이터
+│  └─ jeju_oreums.json        # 제주 오름 보강 데이터
+├─ cache/
+│  ├─ tourapi_cache.json      # TourAPI 수집 결과
+│  └─ durunubi_cache.json     # 두루누비 API 수집 결과
+└─ merged/
+   └─ walkgoo_places.json     # 화면에서 실제 사용하는 통합 데이터
 ```
 
-GitHub Pages에 올리면 브라우저에서 직접 API를 호출합니다. 서비스키 노출이 걱정되면 백엔드 프록시를 두는 구조로 바꾸는 것이 좋습니다.
+## GitHub Secrets 설정
 
+GitHub 저장소에서 아래로 이동합니다.
 
-## v4 변경사항
-- 섬 여행 데이터를 인천권/서해권/남해권/동해권/제주권으로 자동 분류합니다.
-- 오름 검색 키워드를 대폭 확대했습니다.
-- TourAPI 키워드 검색 결과를 기반으로 동적 카드가 생성됩니다.
-- 섬 지역 필터는 `js/data.js`의 `ISLAND_REGIONS`에서 수정할 수 있습니다.
+```text
+Settings → Secrets and variables → Actions → New repository secret
+```
 
-## 정보 확장 아이디어
-- 한국관광공사 TourAPI: 기본 관광지/사진/개요/주소/좌표 조회
-- 해양수산부 바다여행지수: 섬 여행 시 날씨·파도·바람 기반 여행지수 연동
-- 해양수산부 여행지 정보 파일데이터: 섬/어촌/연안 관광 설명 보강
-- VISITJEJU/제주 공공데이터: 오름 데이터 보강
+등록할 값:
+
+```text
+TOUR_API_KEY       = 한국관광공사 TourAPI 서비스키
+DURUNUBI_API_KEY   = 한국관광공사 두루누비 정보 서비스_GW 서비스키
+```
+
+## 자동 갱신
+
+`.github/workflows/update-walkgoo-cache.yml`가 매일 새벽 3시(KST)에 실행됩니다. 수동 실행도 가능합니다.
+
+```text
+Actions → Update WalkGoo Cache → Run workflow
+```
+
+## 로컬에서 캐시 갱신
+
+```cmd
+set TOUR_API_KEY=본인_TourAPI_키
+set DURUNUBI_API_KEY=본인_두루누비_키
+node scripts/update-cache.mjs
+```
+
+## 브라우저 직접 API 호출
+
+기본값은 꺼져 있습니다.
+
+```javascript
+ALLOW_BROWSER_API: false
+```
+
+GitHub Pages에서 API 한도 초과가 잦기 때문에 권장하지 않습니다.

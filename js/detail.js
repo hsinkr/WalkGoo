@@ -26,7 +26,7 @@ function render(){
     <h1>${p.title}</h1>
     <p class="muted">${p.region}</p>
     <p>${p.description || p.summary || '상세 설명 정보가 없습니다.'}</p>
-    <div class="meta"><b>${p.themeName}</b><b>${p.keyword || 'TourAPI'}</b><b>${p.tel || '문의처 확인 필요'}</b></div>
+    <div class="meta"><b>${p.themeName}</b><b>${p.source || 'WalkGoo'}</b><b>${p.tel || '문의처 확인 필요'}</b></div>
     <h2>추천 포인트</h2><ul class="list">${(p.points||[]).map(x=>`<li>${x}</li>`).join('')}</ul>
     <h2>주의사항</h2><ul class="list">${(p.cautions||[]).map(x=>`<li>${x}</li>`).join('')}</ul>
     <button class="btn fav-btn" data-id="${p.id}">${isFav(p.id)?'★ 저장됨':'☆ 즐겨찾기'}</button>`;

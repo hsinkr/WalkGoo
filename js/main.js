@@ -59,63 +59,64 @@ function attachCardEvents(list){
 }
 
 function cardHtml(item) {
-  const themeKey = item.themeId || item.category || 'trail';
-
-  const iconMap = {
-    trail: '🥾',
-    water: '🏞️',
-    reservoir: '🏞️',
-    island: '🏝️',
-    oreum: '⛰️',
-    urban: '🚶'
-  };
+  const category = item.themeId || item.category || 'trail';
 
   const labelMap = {
     trail: '코리아둘레길',
     water: '저수지·호수길',
     reservoir: '저수지·호수길',
+    lake: '저수지·호수길',
     island: '섬 여행',
     oreum: '제주 오름',
     urban: '도시 산책길'
   };
 
-  const icon = iconMap[themeKey] || '🥾';
-  const label = labelMap[themeKey] || '걷기길';
-  const fav = isFav(String(item.id));
+  const iconMap = {
+    trail: '🥾',
+    water: '🏞️',
+    reservoir: '🏞️',
+    lake: '🏞️',
+    island: '🏝️',
+    oreum: '⛰️',
+    urban: '🚶'
+  };
+
+  const label = labelMap[category] || '걷기길';
+  const icon = iconMap[category] || '🥾';
+
+  const hasImage =
+    item.image &&
+    String(item.image).trim() !== '' &&
+    !String(item.image).includes('undefined');
 
   return `
     <article class="place-card" data-id="${item.id}">
-      <div class="place-image">
-        ${
-          item.image
-          ? `<img src="${item.image}" alt="${item.title}">`
-          : `<div class="placeholder">${icon}</div>`
-        }
-      </div>
-
-      <div class="place-content">
-        <div class="place-region">
-          ${label}${item.region ? ' · ' + item.region : ''}${item.zone ? ' · ' + item.zone : ''}
-        </div>
-
-        <h3>${item.title || '이름 없음'}</h3>
-
-        <p>
+      <a class="detail-link" href="detail.html?id=${encodeURIComponent(item.id)}" data-place-id="${item.id}">
+        <div class="place-thumb">
           ${
-            item.summary ||
-            item.description ||
-            '걷기 여행 정보'
+            hasImage
+              ? `<img src="${item.image}" alt="${item.title}" onerror="this.parentElement.innerHTML='<div class=&quot;thumb-placeholder&quot;>${icon}</div>';">`
+              : `<div class="thumb-placeholder">${icon}</div>`
           }
-        </p>
-
-        <div class="card-actions">
-          <button type="button" class="fav-btn" data-id="${item.id}">
-            ${fav ? '★ 저장됨' : '☆ 즐겨찾기'}
-          </button>
-          <a class="detail-link" href="detail.html?id=${encodeURIComponent(item.id)}" data-place-id="${item.id}">
-            상세보기
-          </a>
         </div>
+
+        <div class="place-body">
+          <div class="place-meta">
+            ${label}${item.region ? ' · ' + item.region : ''}${item.zone ? ' · ' + item.zone : ''}
+          </div>
+
+          <h3>${item.title || '이름 없음'}</h3>
+
+          <p>
+            ${item.summary || item.description || '걷기 여행 후보지입니다. 상세 정보는 공식 안내를 확인하세요.'}
+          </p>
+        </div>
+      </a>
+
+      <div class="place-actions">
+        <button class="fav-btn" data-id="${item.id}">
+          ${isFav(item.id) ? '★ 저장됨' : '☆ 즐겨찾기'}
+        </button>
       </div>
     </article>
   `;

@@ -1,24 +1,40 @@
 
 let p = findCachedPlace(new URLSearchParams(location.search).get('id'));
 
-async function enrich(){
-  if(!p) return;
-  try{
+async function enrich() {
+  if (!p) return;
+
+  // TourAPI 상세조회 함수가 없거나 contentid가 없으면 보강 생략
+  if (
+    typeof fetchTourDetail !== 'function' ||
+    !p.contentid ||
+    !p.contenttypeid
+  ) {
+    saveLastPlace(p);
+    return;
+  }
+
+  try {
     const d = await fetchTourDetail(p.contentid, p.contenttypeid);
-    if(d){
-      p = {...p,
+
+    if (d) {
+      p = {
+        ...p,
         title: d.title || p.title,
-        region: [d.addr1,d.addr2].filter(Boolean).join(' ') || p.region,
+        region: [d.addr1, d.addr2].filter(Boolean).join(' ') || p.region,
         image: d.firstimage || d.firstimage2 || p.image,
         lat: Number(d.mapy) || p.lat,
         lng: Number(d.mapx) || p.lng,
         tel: d.tel || p.tel,
         description: stripHtml(d.overview) || p.description,
-        summary: stripHtml(d.overview)?.slice(0,120) || p.summary
+        summary: stripHtml(d.overview)?.slice(0, 120) || p.summary
       };
+
       saveLastPlace(p);
     }
-  }catch(e){ console.warn(e); }
+  } catch (e) {
+    console.warn(e);
+  }
 }
 
 function render() {
@@ -66,8 +82,10 @@ function render() {
 
     ${
       tags.length
-        ? `<div class="tags detail-tags">
-            ${tags.map(tag => `<span>${tag}</span>`).join('')}
+        ? `<div class="detail-tags">
+            ${tags.map(tag =>
+              `<span class="tag ${getTagClass(tag)}">${tag}</span>`
+            ).join('')}
           </div>`
         : ''
     }
@@ -211,7 +229,7 @@ function getTagClass(tag) {
 
     // 도시
     '도시 산책길' : 'tag-urban'
-};
+  };
 
   return map[tag] || 'tag-default';
 }

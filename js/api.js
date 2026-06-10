@@ -1,209 +1,333 @@
-const CFG = window.WALKGOO_CONFIG || {};
-const API_CACHE_KEY = 'walkgoo_places_v9';
-const API_CACHE_TIME_KEY = 'walkgoo_places_v9_time';
-const MEMORY_TTL_MS = 1000 * 60 * 60 * 24;
+// WalkGoo API/Data Loader
+// 목적:
+// 1) data/custom/*.json을 우선 로드
+// 2) data/cache/*.json, data/merged/*.json을 보조 로드
+// 3) TourAPI 브라우저 직접 호출은 옵션으로만 사용
+// 4) 기존 main.js가 fetchWalkgooPlaces()를 호출하던 구조와 호환
 
-function favs(){ return JSON.parse(localStorage.getItem('walkgoo_favs') || '[]'); }
-function isFav(id){ return favs().includes(String(id)); }
-function toggleFav(id){
-  const sid = String(id);
-  const a = favs();
-  const i = a.indexOf(sid);
-  i >= 0 ? a.splice(i,1) : a.push(sid);
-  localStorage.setItem('walkgoo_favs', JSON.stringify(a));
-  return a.includes(sid);
-}
-function stripHtml(v=''){ return String(v).replace(/<[^>]*>/g,'').replace(/&nbsp;/g,' ').trim(); }
-function compact(arr){ return arr.filter(Boolean).join(' '); }
-function debugLog(...args){ if(CFG.DEBUG_API) console.log('[WalkGoo]', ...args); }
-function debugWarn(...args){ if(CFG.DEBUG_API) console.warn('[WalkGoo]', ...args); }
+(function () {
+  const CFG = window.WALKGOO_CONFIG || {};
+  const DEBUG = CFG.DEBUG_API === true;
 
-async function loadJson(path, fallback=null){
-  try{
-    const r = await fetch(path + '?v=' + Date.now(), {cache:'no-store'});
-    if(!r.ok) throw new Error(`${path} HTTP ${r.status}`);
-    return await r.json();
-  }catch(e){
-    debugWarn('JSON 로드 실패:', e.message);
-    return fallback;
+  function log(...args) {
+    if (DEBUG) console.log('[WalkGoo]', ...args);
   }
-}
 
-function normalizeServiceKey(key){
-  const v = String(key || '').trim();
-  if(!v) return '';
-  return v.includes('%') ? v : encodeURIComponent(v);
-}
-function apiUrl(base, path, params, serviceKey){
-  const sp = new URLSearchParams();
-  Object.entries(params || {}).forEach(([k,v]) => { if(v !== undefined && v !== null && v !== '') sp.set(k, v); });
-  sp.set('MobileOS','ETC'); sp.set('MobileApp','WalkGoo'); sp.set('_type','json');
-  return `${base}${path}?${sp.toString()}&serviceKey=${normalizeServiceKey(serviceKey)}`;
-}
-async function fetchJson(url, label){
-  debugLog(label, url.replace(/serviceKey=.*/, 'serviceKey=***'));
-  const r = await fetch(url);
-  const text = await r.text();
-  if(!r.ok) throw new Error(`${label} HTTP 오류: ${r.status}`);
-  let j;
-  try { j = JSON.parse(text); }
-  catch(e){ throw new Error(`${label} JSON 응답 아님: ${stripHtml(text).slice(0,180)}`); }
-  const h = j?.response?.header;
-  if(h && h.resultCode && h.resultCode !== '0000') throw new Error(`${label} API 오류: ${h.resultCode} / ${h.resultMsg || ''}`);
-  return j;
-}
-function getTheme(id){ return (window.WALKGOO_THEMES || []).find(t=>t.id===id) || {id, name:id, icon:'📍'}; }
-function inferTheme(text=''){
-  if(/오름|올레/.test(text)) return 'oreum';
-  if(/섬|도$|울릉|우도|가파|덕적|청산|비진/.test(text)) return 'island';
-  if(/저수지|호수|수변|호반|생태|하천/.test(text)) return 'water';
-  if(/공원|도시|산책/.test(text)) return 'urban';
-  return 'trail';
-}
-function inferIslandRegion(place){
-  if(place.themeId !== 'island') return '';
-  const txt = [place.title, place.region, place.zone, (place.tags||[]).join(' ')].join(' ');
-  const found = (window.ISLAND_REGIONS||[]).find(r => r.areas.some(a=>txt.includes(a)) || r.keywords.some(k=>txt.includes(k)) || txt.includes(r.name));
-  return found ? found.id : 'etc';
-}
-function islandRegionName(id){ return ((window.ISLAND_REGIONS||[]).find(x=>x.id===id)||{}).name || (id==='etc'?'기타':''); }
+  function warn(...args) {
+    if (DEBUG) console.warn('[WalkGoo]', ...args);
+  }
 
-function normalizePlace(p){
-  const themeId = p.themeId || p.category || inferTheme([p.title,p.region,p.summary].join(' '));
-  const theme = getTheme(themeId);
-  const id = String(p.id || p.contentid || `${themeId}-${p.title}-${p.region}`).replace(/\s+/g,'-');
-  const out = {
-    id,
-    source: p.source || 'cache',
-    themeId,
-    themeName: p.themeName || theme.name,
-    title: p.title || p.routeNm || p.crsKorNm || '이름 없음',
-    region: p.region || p.sigun || p.addr1 || '지역 정보 확인 필요',
-    summary: p.summary || p.description || p.overview || p.region || '',
-    image: p.image || p.firstimage || p.firstimage2 || '',
-    difficulty: p.difficulty || '정보 확인 필요',
-    duration: p.duration || p.routeTime || '정보 확인 필요',
-    distance: p.distance || p.routeDstnc || '정보 확인 필요',
-    parking: p.parking || '정보 확인 필요',
-    toilet: p.toilet || '정보 확인 필요',
-    lat: Number(p.lat || p.mapy || p.latitude || 0),
-    lng: Number(p.lng || p.mapx || p.longitude || 0),
-    contentid: p.contentid || '',
-    contenttypeid: p.contenttypeid || '',
-    tel: p.tel || '',
-    tags: [...new Set([...(p.tags||[]), p.source || 'WalkGoo', theme.name].filter(Boolean))],
-    description: p.description || p.summary || '',
-    points: p.points || ['방문 전 최신 교통편, 운영 정보, 기상 상황을 확인하세요.'],
-    cautions: p.cautions || ['API/캐시/보강 데이터를 병합한 정보이므로 현장 정보와 다를 수 있습니다.']
+  async function fetchJsonFile(path) {
+    try {
+      const res = await fetch(path, { cache: 'no-cache' });
+      if (!res.ok) {
+        warn('JSON 파일 없음/로드 실패:', path, res.status);
+        return [];
+      }
+
+      const json = await res.json();
+
+      // 배열 파일
+      if (Array.isArray(json)) return json;
+
+      // { items: [...] }
+      if (Array.isArray(json.items)) return json.items;
+
+      // { places: [...] }
+      if (Array.isArray(json.places)) return json.places;
+
+      // TourAPI 스타일 캐시
+      if (json.response?.body?.items?.item) {
+        const item = json.response.body.items.item;
+        return Array.isArray(item) ? item : [item];
+      }
+
+      warn('알 수 없는 JSON 구조:', path, json);
+      return [];
+    } catch (e) {
+      warn('JSON 로드 오류:', path, e.message);
+      return [];
+    }
+  }
+
+  function normalizeCategory(item) {
+    const category = item.category || item.themeId || item.type || '';
+    const subCategory = item.subCategory || '';
+
+    if (category === 'oreum' || item.title?.includes('오름')) return 'oreum';
+    if (category === 'island' || item.zone?.includes('권') || item.tags?.includes('섬여행')) return 'island';
+    if (category === 'water' || category === 'reservoir') return 'water';
+    if (category === 'urban') return 'urban';
+
+    if (/저수지|호수|수변|호반|생태|천변|강변|습지/.test(item.title || '') || /저수지|호수|수변/.test(subCategory)) {
+      return 'water';
+    }
+
+    if (/도시|산책|공원|천|숲|자락/.test(subCategory) || /청계천|탄천|양재천|서울숲|공원/.test(item.title || '')) {
+      return 'urban';
+    }
+
+    return 'trail';
+  }
+
+  function inferIslandZone(item) {
+    if (item.zone) return item.zone;
+    const text = `${item.region || ''} ${item.title || ''}`;
+
+    if (/인천|강화|옹진|백령|대청|덕적|자월|이작|무의|장봉|석모/.test(text)) return '인천권';
+    if (/충남|전북|군산|부안|보령|태안|신안|홍도|흑산|가거|증도|비금|도초|선유|원산|삽시|위도/.test(text)) return '서해권';
+    if (/전남|경남|부산|완도|여수|통영|거제|남해|청산|보길|거문|금오|사량|욕지|비진|매물/.test(text)) return '남해권';
+    if (/경북|울릉|독도|죽도|관음/.test(text)) return '동해권';
+    if (/제주|우도|가파|마라|비양|추자|차귀/.test(text)) return '제주권';
+
+    return '';
+  }
+
+  function normalizePlace(raw, source = 'json') {
+    const title = raw.title || raw.name || raw.routeNm || raw.crsKorNm || raw.placeName || raw.addr1 || '';
+    const region = raw.region || raw.addr1 || raw.sigun || raw.area || raw.address || '';
+    const category = normalizeCategory({ ...raw, title, region });
+
+    const item = {
+      id: raw.id || raw.contentid || raw.routeIdx || raw.crsIdx || makeId(title, region),
+      title,
+      category,
+      themeId: category,
+      subCategory: raw.subCategory || raw.type || '',
+      region,
+      zone: raw.zone || '',
+      summary: raw.summary || raw.description || raw.overview || raw.routeIntrcn || raw.intro || '',
+      distance: raw.distance || raw.routeDstnc || raw.crsDstnc || '',
+      duration: raw.duration || raw.routeTime || raw.crsTotlRqrmHour || '',
+      difficulty: raw.difficulty || raw.level || '보통',
+      lat: toNumberOrNull(raw.lat ?? raw.mapy ?? raw.latitude),
+      lng: toNumberOrNull(raw.lng ?? raw.mapx ?? raw.longitude),
+      image: raw.image || raw.firstimage || raw.routeImg || '',
+      tags: Array.isArray(raw.tags) ? raw.tags : [],
+      source: raw.source || source,
+      verifyStatus: raw.verifyStatus || 'needs-check',
+      raw
+    };
+
+    if (item.category === 'island') {
+      item.zone = inferIslandZone(item);
+    }
+
+    if (!item.tags.length) {
+      item.tags = makeTags(item);
+    }
+
+    return item;
+  }
+
+  function toNumberOrNull(v) {
+    if (v === null || v === undefined || v === '') return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function makeId(title, region) {
+    const s = `${title}-${region}`.trim();
+    return s
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^0-9a-z가-힣-]/gi, '')
+      || `place-${Math.random().toString(36).slice(2)}`;
+  }
+
+  function makeTags(item) {
+    const tags = ['걷기'];
+
+    if (item.category === 'water') tags.push('저수지·호수길');
+    if (item.category === 'island') tags.push('섬여행');
+    if (item.category === 'oreum') tags.push('제주오름');
+    if (item.category === 'urban') tags.push('도시산책길');
+    if (item.category === 'trail') tags.push('둘레길');
+
+    if (item.zone) tags.push(item.zone);
+    if (item.region) tags.push(item.region.split(' ')[0]);
+
+    return [...new Set(tags)];
+  }
+
+  function dedupePlaces(items) {
+    const seen = new Set();
+    const result = [];
+
+    for (const item of items) {
+      if (!item.title) continue;
+
+      const key = WALKGOO_OPTIONS?.DEDUPE_BY_TITLE_REGION
+        ? `${item.title}|${item.region || ''}`
+        : `${item.id}`;
+
+      if (seen.has(key)) continue;
+      seen.add(key);
+      result.push(item);
+    }
+
+    return result;
+  }
+
+  async function loadFromFileList(paths, source) {
+    if (!Array.isArray(paths)) return [];
+
+    const result = [];
+
+    for (const path of paths) {
+      const rows = await fetchJsonFile(path);
+      if (rows.length) {
+        log(`${source} 로드: ${path} (${rows.length}건)`);
+        result.push(...rows.map(row => normalizePlace(row, source)));
+      }
+    }
+
+    return result;
+  }
+
+  async function loadCustomPlaces() {
+    if (window.WALKGOO_OPTIONS?.USE_CUSTOM_JSON === false) return [];
+    return loadFromFileList(window.WALKGOO_DATA_FILES?.custom || [], 'custom');
+  }
+
+  async function loadCachePlaces() {
+    if (window.WALKGOO_OPTIONS?.USE_CACHE_JSON === false) return [];
+    return loadFromFileList(window.WALKGOO_DATA_FILES?.cache || [], 'cache');
+  }
+
+  async function loadMergedPlaces() {
+    if (window.WALKGOO_OPTIONS?.USE_MERGED_JSON === false) return [];
+    return loadFromFileList(window.WALKGOO_DATA_FILES?.merged || [], 'merged');
+  }
+
+  // 브라우저 TourAPI 호출은 쿼터 초과 방지를 위해 기본 비활성화.
+  // 꼭 필요할 때 config.js 또는 data.js에서 USE_TOUR_API_IN_BROWSER:true 설정.
+  async function loadTourApiPlaces() {
+    const useApi =
+      window.WALKGOO_OPTIONS?.USE_TOUR_API_IN_BROWSER === true ||
+      CFG.USE_TOUR_API_IN_BROWSER === true;
+
+    if (!useApi) {
+      log('브라우저 TourAPI 직접 호출 비활성화');
+      return [];
+    }
+
+    if (!CFG.TOUR_API_KEY) {
+      warn('TOUR_API_KEY 없음');
+      return [];
+    }
+
+    // 여기서는 최소 호출만 수행. 상세한 API 조회는 GitHub Actions 권장.
+    const keywords = [
+      ...(window.TOURAPI_KEYWORDS?.water || []),
+      ...(window.TOURAPI_KEYWORDS?.trail || [])
+    ].slice(0, 5);
+
+    const rows = [];
+
+    for (const keyword of keywords) {
+      await sleep(Number(CFG.API_DELAY_MS || 800));
+      try {
+        const url = buildTourKeywordUrl(keyword);
+        const json = await fetch(url).then(r => r.json());
+        const item = json?.response?.body?.items?.item || [];
+        rows.push(...(Array.isArray(item) ? item : [item]));
+      } catch (e) {
+        warn('TourAPI 호출 실패:', keyword, e.message);
+      }
+    }
+
+    return rows.map(row => normalizePlace(row, 'tourapi'));
+  }
+
+  function buildTourKeywordUrl(keyword) {
+    const base = CFG.TOUR_API_BASE || 'https://apis.data.go.kr/B551011/KorService2';
+    const key = encodeServiceKey(CFG.TOUR_API_KEY);
+
+    const params = new URLSearchParams({
+      numOfRows: '30',
+      pageNo: '1',
+      arrange: 'O',
+      keyword,
+      MobileOS: 'ETC',
+      MobileApp: 'WalkGoo',
+      _type: 'json'
+    });
+
+    return `${base}/searchKeyword2?${params.toString()}&serviceKey=${key}`;
+  }
+
+  function encodeServiceKey(key) {
+    if (!key) return '';
+    // 이미 인코딩된 키면 그대로 사용
+    if (/%2F|%3D|%2B/i.test(key)) return key;
+    return encodeURIComponent(key);
+  }
+
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  // 기존 main.js 호환용 핵심 함수
+  window.fetchWalkgooPlaces = async function fetchWalkgooPlaces() {
+    const all = [];
+
+    // 통합 파일이 있으면 먼저 로드
+    all.push(...await loadMergedPlaces());
+
+    // 개별 custom/cache도 로드
+    all.push(...await loadCustomPlaces());
+    all.push(...await loadCachePlaces());
+
+    // 선택적으로 API 보강
+    all.push(...await loadTourApiPlaces());
+
+    const result = dedupePlaces(all);
+
+    log(`최종 데이터 ${result.length}건`, {
+      merged: all.length,
+      result: result.length
+    });
+
+    return result;
   };
-  out.islandRegionId = p.islandRegionId || inferIslandRegion(out);
-  out.islandRegionName = p.islandRegionName || islandRegionName(out.islandRegionId);
-  if(out.islandRegionName) out.tags = [...new Set([...out.tags, out.islandRegionName])];
-  return out;
-}
-function dedupePlaces(list){
-  const m = new Map();
-  list.map(normalizePlace).forEach(p => {
-    const key = p.contentid || `${p.title}-${p.region}`;
-    if(!m.has(key)) m.set(key,p);
-    else m.set(key, {...m.get(key), ...p, tags:[...new Set([...(m.get(key).tags||[]), ...(p.tags||[])])]});
-  });
-  return [...m.values()];
-}
 
-async function loadCachePlaces(){
-  const merged = await loadJson('data/merged/walkgoo_places.json');
-  if(merged?.places?.length) return merged.places;
-  const files = ['reservoir_trails.json','islands.json','jeju_oreums.json'];
-  const parts = await Promise.all(files.map(f => loadJson(`data/custom/${f}`, [])));
-  return parts.flat();
-}
+  // 테마별 카운트 계산
+  window.getWalkgooThemeCounts = function getWalkgooThemeCounts(places) {
+    const counts = {};
+    for (const theme of window.WALKGOO_THEMES || []) {
+      counts[theme.id] = 0;
+    }
 
-async function searchTourApiKeyword(keyword, themeId){
-  if(!CFG.TOUR_API_KEY) return [];
-  const url = apiUrl(CFG.TOUR_API_BASE || 'https://apis.data.go.kr/B551011/KorService2', '/searchKeyword2', {
-    numOfRows: 30, pageNo: 1, arrange: 'O', keyword
-  }, CFG.TOUR_API_KEY);
-  const j = await fetchJson(url, `TourAPI ${keyword}`);
-  let items = j?.response?.body?.items?.item || [];
-  if(!Array.isArray(items)) items = items ? [items] : [];
-  return items.map(item => normalizePlace({
-    id:'tour-' + (item.contentid || `${themeId}-${item.title}`), source:'TourAPI', themeId,
-    contentid:item.contentid, contenttypeid:item.contenttypeid, title:item.title,
-    region:compact([item.addr1,item.addr2]) || '지역 정보 확인 필요', summary:compact([item.addr1,item.addr2]) || keyword,
-    image:item.firstimage || item.firstimage2 || '', lat:item.mapy, lng:item.mapx, tel:item.tel, tags:[keyword]
-  }));
-}
+    for (const p of places || []) {
+      const key = p.category || p.themeId;
+      if (key === 'water' || key === 'reservoir') counts.water = (counts.water || 0) + 1;
+      else if (key === 'island') counts.island = (counts.island || 0) + 1;
+      else if (key === 'oreum') counts.oreum = (counts.oreum || 0) + 1;
+      else if (key === 'urban') counts.urban = (counts.urban || 0) + 1;
+      else counts.trail = (counts.trail || 0) + 1;
+    }
 
-async function fetchBrowserApiPlaces(){
-  if(!CFG.ALLOW_BROWSER_API) return [];
-  const jobs = [];
-  Object.entries(window.TOURAPI_KEYWORDS || {}).forEach(([themeId, keywords]) => keywords.slice(0,5).forEach(k => jobs.push(searchTourApiKeyword(k, themeId))));
-  const settled = await Promise.allSettled(jobs);
-  const failed = settled.filter(x=>x.status==='rejected');
-  if(failed.length) debugWarn('브라우저 API 실패', failed.map(x=>x.reason.message));
-  return settled.flatMap(x=>x.status==='fulfilled'?x.value:[]);
-}
+    return counts;
+  };
 
-async function fetchWalkgooPlaces(force=false){
-  if(!force){
-    const t = Number(localStorage.getItem(API_CACHE_TIME_KEY) || 0);
-    const cached = localStorage.getItem(API_CACHE_KEY);
-    if(cached && Date.now() - t < MEMORY_TTL_MS) return JSON.parse(cached);
-  }
-  const cache = CFG.USE_CACHE_JSON !== false ? await loadCachePlaces() : [];
-  const live = await fetchBrowserApiPlaces();
-  const places = dedupePlaces([...cache, ...live]);
-  localStorage.setItem(API_CACHE_KEY, JSON.stringify(places));
-  localStorage.setItem(API_CACHE_TIME_KEY, String(Date.now()));
-  if(!places.length) throw new Error('표시할 데이터가 없습니다. data/merged/walkgoo_places.json 또는 data/custom/*.json을 확인하세요.');
-  return places;
-}
+  // 목록 필터
+  window.filterWalkgooPlaces = function filterWalkgooPlaces(places, themeId, keyword = '') {
+    const kw = keyword.trim().toLowerCase();
 
-async function fetchTourDetail(contentid, contenttypeid){
-  if(!CFG.TOUR_API_KEY || !contentid) return null;
-  const url = apiUrl(CFG.TOUR_API_BASE || 'https://apis.data.go.kr/B551011/KorService2', '/detailCommon2', {
-    contentId: contentid, contentTypeId: contenttypeid || '', defaultYN:'Y', firstImageYN:'Y', areacodeYN:'Y', catcodeYN:'Y', addrinfoYN:'Y', mapinfoYN:'Y', overviewYN:'Y'
-  }, CFG.TOUR_API_KEY);
-  const j = await fetchJson(url, '상세정보');
-  let item = j?.response?.body?.items?.item || null;
-  if(Array.isArray(item)) item = item[0];
-  return item;
-}
-function saveLastPlace(p){ sessionStorage.setItem('walkgoo_last_detail', JSON.stringify(p)); }
-function findCachedPlace(id){
-  const cached = JSON.parse(localStorage.getItem(API_CACHE_KEY) || '[]');
-  return cached.find(p => p.id === id) || JSON.parse(sessionStorage.getItem('walkgoo_last_detail') || 'null');
-}
-function cardHtml(p){
-  const sourceLabel = p.source === 'custom' ? '보강 데이터' : p.source === 'TourAPI' ? 'TourAPI' : p.source === 'Durunubi' ? '두루누비' : '캐시 데이터';
-  return `<article class="place-card" data-theme="${p.themeId}">
-    <a href="detail.html?id=${encodeURIComponent(p.id)}" data-place-id="${p.id}" class="detail-link">
-      <div class="thumb">${p.image ? `<img src="${p.image}" alt="${p.title}">` : ''}<span>${p.themeName || 'WalkGoo'}</span></div>
-    </a>
-    <div class="place-body">
-      <span class="api-badge">${sourceLabel}</span>
-      <h3>${p.title}</h3>
-      <p>${p.summary || p.region}</p>
-      <div class="meta"><b>${p.region}</b><b>${p.distance}</b><b>${p.duration}</b>${p.islandRegionName ? `<b>${p.islandRegionName}</b>` : ''}</div>
-      <div class="card-actions"><a class="btn primary detail-link" data-place-id="${p.id}" href="detail.html?id=${encodeURIComponent(p.id)}">상세보기</a><button class="btn fav-btn" data-id="${p.id}">${isFav(p.id) ? '★ 저장됨' : '☆ 즐겨찾기'}</button></div>
-    </div>
-  </article>`;
-}
-async function aiRecommend(prompt, places){
-  if(CFG.AI_PROXY_URL){
-    try{
-      const r = await fetch(CFG.AI_PROXY_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,places})});
-      const j = await r.json(); return j.answer || j.message || 'AI 응답을 해석하지 못했습니다.';
-    }catch(e){ return 'AI 프록시 호출 중 오류가 발생했습니다. ' + e.message; }
-  }
-  const q = (prompt || '').toLowerCase();
-  let list = places.filter(p => [p.title,p.region,p.summary,(p.tags||[]).join(' ')].join(' ').toLowerCase().includes(q));
-  if(!list.length){
-    if(q.includes('오름') || q.includes('제주')) list = places.filter(p=>p.themeId==='oreum');
-    else if(q.includes('섬') || q.includes('바다')) list = places.filter(p=>p.themeId==='island');
-    else if(q.includes('호수') || q.includes('저수지') || q.includes('수변')) list = places.filter(p=>p.themeId==='water');
-    else list = places.filter(p=>p.themeId==='trail');
-  }
-  return list.slice(0,5).map((p,i)=>`${i+1}. ${p.title}\n- 지역: ${p.region}\n- 거리/시간: ${p.distance} / ${p.duration}\n- 추천 이유: ${p.summary}`).join('\n\n') || '조건에 맞는 추천지가 없습니다.';
-}
+    return (places || []).filter(p => {
+      const cat = p.category || p.themeId;
+      const matchTheme =
+        !themeId ||
+        themeId === 'all' ||
+        (themeId === 'water' && (cat === 'water' || cat === 'reservoir')) ||
+        cat === themeId;
+
+      const text = `${p.title || ''} ${p.region || ''} ${p.zone || ''} ${(p.tags || []).join(' ')}`.toLowerCase();
+      const matchKeyword = !kw || text.includes(kw);
+
+      return matchTheme && matchKeyword;
+    });
+  };
+
+})();

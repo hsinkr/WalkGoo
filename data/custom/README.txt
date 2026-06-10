@@ -1,0 +1,1 @@
+여기에 WalkGoo_dataset_draft_270.zip의 data/custom/*.json 파일을 복사하세요.

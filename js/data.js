@@ -1,5 +1,5 @@
 // WalkGoo 테마/검색/분류 설정
-// 실제 화면 데이터는 data/merged/walkgoo_places.json + data/custom/*.json + 선택적 API 캐시에서 로드합니다.
+// 실제 화면 데이터는 data/custom/*.json + data/cache/*.json + 선택적 API에서 로드합니다.
 
 const WALKGOO_THEMES = [
   { id:'trail', name:'코리아둘레길', icon:'🥾', desc:'해파랑길·남파랑길·서해랑길·DMZ 평화의 길' },
@@ -16,6 +16,40 @@ const ISLAND_REGIONS = [
   { id:'east', name:'동해권', areas:['강원','경북','울산'], keywords:['울릉도','독도','죽도'] },
   { id:'jeju', name:'제주권', areas:['제주'], keywords:['우도','가파도','마라도','비양도','추자도','차귀도'] }
 ];
+
+// custom/cache JSON 로드 설정
+const WALKGOO_DATA_FILES = {
+  custom: [
+    'data/custom/walk_trails_draft_90.json',
+    'data/custom/islands_draft_90.json',
+    'data/custom/jeju_oreums_draft_100.json',
+
+    // 기존 파일명을 쓰는 경우도 함께 지원
+    'data/custom/reservoir_trails.json',
+    'data/custom/islands.json',
+    'data/custom/jeju_oreums.json'
+  ],
+  cache: [
+    'data/cache/durunubi_cache.json',
+    'data/cache/tourapi_cache.json'
+  ],
+  merged: [
+    'data/merged/walkgoo_places.json',
+    'data/walkgoo_places_draft_all.json'
+  ]
+};
+
+const WALKGOO_OPTIONS = {
+  USE_CUSTOM_JSON: true,
+  USE_CACHE_JSON: true,
+  USE_MERGED_JSON: true,
+
+  // TourAPI 쿼터 초과 방지를 위해 기본 false 권장
+  USE_TOUR_API_IN_BROWSER: false,
+
+  // 같은 장소 중복 제거 기준
+  DEDUPE_BY_TITLE_REGION: true
+};
 
 const TOURAPI_KEYWORDS = {
   trail:['둘레길','해파랑길','남파랑길','서해랑길','코리아둘레길','지리산 둘레길','북한산 둘레길','한양도성길','DMZ 평화의 길'],

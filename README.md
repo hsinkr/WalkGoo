@@ -1,60 +1,31 @@
-# WalkGoo v8 - Durunubi + TourAPI
+# WalkGoo v3
 
 ## 변경 내용
+- 정적 PLACES 데이터 제거
+- 둘레길/섬 여행/올레길·오름 목록을 TourAPI `searchKeyword2`로 동적 조회
+- 테마 카드와 필터 버튼도 API 결과 개수 기준으로 표시
+- 상세 화면에서 `detailCommon2`로 추가 상세 정보 보강
+- API 결과를 LocalStorage에 6시간 캐시
+- 즐겨찾기는 API 캐시 데이터 기준으로 동작
 
-- 한국관광공사_두루누비 정보 서비스_GW 연동 추가
-- 두루누비 `/routeList`, `/courseList`를 이용해 코리아둘레길 코스 데이터를 우선 조회
-- TourAPI는 섬 여행, 오름, 저수지/호수/수변 산책로 보강용으로 사용
-- TourAPI 쿼터 초과가 발생해도 두루누비 데이터는 계속 표시되도록 실패 분리
-- API 캐시 키 v8로 변경
+## 설정
+`js/config.js`에 TourAPI 서비스키를 입력하세요.
 
-## config.js 설정
-
-`js/config.js`에 아래 값을 입력하세요.
-
-```javascript
-TOUR_API_KEY: '한국관광공사 국문 관광정보 서비스 키',
-DURUNUBI_API_KEY: '' // 비워두면 TOUR_API_KEY를 같이 사용
+```js
+TOUR_API_KEY: '발급받은 TourAPI Decoding 서비스키'
 ```
 
-TourAPI 쿼터가 초과된 상태라면 일단 아래처럼 두루누비만 사용해도 됩니다.
+GitHub Pages에 올리면 브라우저에서 직접 API를 호출합니다. 서비스키 노출이 걱정되면 백엔드 프록시를 두는 구조로 바꾸는 것이 좋습니다.
 
-```javascript
-USE_TOUR_API: false
-```
 
-## 배포
+## v4 변경사항
+- 섬 여행 데이터를 인천권/서해권/남해권/동해권/제주권으로 자동 분류합니다.
+- 오름 검색 키워드를 대폭 확대했습니다.
+- TourAPI 키워드 검색 결과를 기반으로 동적 카드가 생성됩니다.
+- 섬 지역 필터는 `js/data.js`의 `ISLAND_REGIONS`에서 수정할 수 있습니다.
 
-```cmd
-git add .
-git commit -m "Add Durunubi API integration"
-git push
-```
-
-브라우저에서 `Ctrl + F5`로 강력 새로고침하세요.
-
-## v8 - 두루누비 API 추가
-
-- 한국관광공사_두루누비 정보 서비스_GW 연동 추가
-- `js/config.js`에 `DURUNUBI_API_KEY`, `DURUNUBI_API_BASE`, `USE_DURUNUBI_API` 옵션 추가
-- 둘레길 데이터는 두루누비 `/routeList`, `/courseList`를 우선 사용
-- TourAPI는 섬/오름/저수지·호수길 보강용으로 유지
-- TourAPI 쿼터 초과 시 `USE_TOUR_API: false`로 설정하면 두루누비 데이터만 표시 가능
-
-### config.js 예시
-
-```javascript
-window.WALKGOO_CONFIG = {
-  TOUR_API_KEY: 'TourAPI_서비스키',
-  TOUR_API_BASE: 'https://apis.data.go.kr/B551011/KorService2',
-
-  DURUNUBI_API_KEY: '두루누비_서비스키',
-  DURUNUBI_API_BASE: 'https://apis.data.go.kr/B551011/Durunubi',
-  USE_DURUNUBI_API: true,
-  USE_TOUR_API: true,
-
-  DEBUG_API: true,
-  API_CONCURRENCY: 1,
-  API_DELAY_MS: 900
-};
-```
+## 정보 확장 아이디어
+- 한국관광공사 TourAPI: 기본 관광지/사진/개요/주소/좌표 조회
+- 해양수산부 바다여행지수: 섬 여행 시 날씨·파도·바람 기반 여행지수 연동
+- 해양수산부 여행지 정보 파일데이터: 섬/어촌/연안 관광 설명 보강
+- VISITJEJU/제주 공공데이터: 오름 데이터 보강

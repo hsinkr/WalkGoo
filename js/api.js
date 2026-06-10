@@ -5,6 +5,8 @@
 // 3) TourAPI 브라우저 직접 호출은 옵션으로만 사용
 // 4) 기존 main.js가 fetchWalkgooPlaces()를 호출하던 구조와 호환
 
+window.API_CACHE_KEY = 'walkgoo_places_cache';
+
 (function () {
   const CFG = window.WALKGOO_CONFIG || {};
   const DEBUG = CFG.DEBUG_API === true;
@@ -83,6 +85,16 @@
     return '';
   }
 
+  function islandZoneToId(zone) {
+    return {
+      '인천권': 'incheon',
+      '서해권': 'west',
+      '남해권': 'south',
+      '동해권': 'east',
+      '제주권': 'jeju'
+    }[zone] || 'all';
+  }
+
   function normalizePlace(raw, source = 'json') {
     const title = raw.title || raw.name || raw.routeNm || raw.crsKorNm || raw.placeName || raw.addr1 || '';
     const region = raw.region || raw.addr1 || raw.sigun || raw.area || raw.address || '';
@@ -111,6 +123,8 @@
 
     if (item.category === 'island') {
       item.zone = inferIslandZone(item);
+      item.islandRegionId = islandZoneToId(item.zone);
+      item.islandRegionName = item.zone;
     }
 
     if (!item.tags.length) {
@@ -283,6 +297,13 @@
     all.push(...await loadTourApiPlaces());
 
     const result = dedupePlaces(all);
+
+    // 상세/즐겨찾기 화면 호환을 위해 캐시에 저장
+    try {
+      localStorage.setItem('walkgoo_places_cache', JSON.stringify(result));
+    } catch (e) {
+      warn('localStorage 캐시 저장 실패:', e.message);
+    }
 
     log(`최종 데이터 ${result.length}건`, {
       merged: all.length,

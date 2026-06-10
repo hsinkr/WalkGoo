@@ -6,8 +6,8 @@ const placeGrid = document.getElementById('placeGrid');
 const filterActions = document.getElementById('filterActions');
 const islandRegionActions = document.getElementById('islandRegionActions');
 
-function countByTheme(id){ return allPlaces.filter(p=>p.themeId===id).length; }
-function countByIslandRegion(id){ return allPlaces.filter(p=>p.themeId==='island' && (id==='all' || p.islandRegionId===id)).length; }
+function countByTheme(id){ return allPlaces.filter(p => (p.themeId || p.category) === id).length; }
+function countByIslandRegion(id){ return allPlaces.filter(p => (p.themeId || p.category)==='island' && (id==='all' || p.islandRegionId===id)).length; }
 
 function renderThemes(){
   themeGrid.innerHTML = WALKGOO_THEMES.map(t => `
@@ -34,8 +34,8 @@ function renderIslandRegions(){
     islandRegionActions.style.display = 'none';
     return;
   }
-  
-  islandRegionActions.style.display = 'flex';
+  isl
+  andRegionActions.style.display = 'flex';
   islandRegionActions.innerHTML = `<button class="chip region-chip ${currentIslandRegion==='all'?'active':''}" data-region="all">섬 전체 ${countByIslandRegion('all')}</button>` +
     ISLAND_REGIONS.map(r => `<button class="chip region-chip ${currentIslandRegion===r.id?'active':''}" data-region="${r.id}">${r.name} ${countByIslandRegion(r.id)}</button>`).join('');
   document.querySelectorAll('.region-chip').forEach(c => c.onclick = () => {
@@ -46,7 +46,7 @@ function renderIslandRegions(){
 }
 
 function getFilteredPlaces(){
-  let list = currentFilter === 'all' ? allPlaces : allPlaces.filter(p => p.themeId === currentFilter);
+  let list = currentFilter === 'all' ? allPlaces : allPlaces.filter(p => (p.themeId || p.category) === currentFilter);
   if(currentFilter === 'island' && currentIslandRegion !== 'all') list = list.filter(p => p.islandRegionId === currentIslandRegion);
   return list;
 }
@@ -60,41 +60,46 @@ function attachCardEvents(list){
 }
 
 function cardHtml(item) {
+  const themeKey = item.themeId || item.category || 'trail';
+
   const iconMap = {
     trail: '🥾',
     water: '🏞️',
+    reservoir: '🏞️',
     island: '🏝️',
     oreum: '⛰️',
     urban: '🚶'
   };
 
-  const icon =
-      iconMap[item.category]
-      || iconMap[item.themeId]
-      || '🥾';
+  const labelMap = {
+    trail: '코리아둘레길',
+    water: '저수지·호수길',
+    reservoir: '저수지·호수길',
+    island: '섬 여행',
+    oreum: '제주 오름',
+    urban: '도시 산책길'
+  };
+
+  const icon = iconMap[themeKey] || '🥾';
+  const label = labelMap[themeKey] || '걷기길';
+  const fav = isFav(String(item.id));
 
   return `
-    <article class="place-card"
-             data-id="${item.id}">
-
+    <article class="place-card" data-id="${item.id}">
       <div class="place-image">
-
         ${
           item.image
           ? `<img src="${item.image}" alt="${item.title}">`
           : `<div class="placeholder">${icon}</div>`
         }
-
       </div>
 
       <div class="place-content">
-
         <div class="place-region">
-          ${item.region || ''}
-          ${item.zone ? ' · ' + item.zone : ''}
+          ${label}${item.region ? ' · ' + item.region : ''}${item.zone ? ' · ' + item.zone : ''}
         </div>
 
-        <h3>${item.title}</h3>
+        <h3>${item.title || '이름 없음'}</h3>
 
         <p>
           ${
@@ -104,8 +109,15 @@ function cardHtml(item) {
           }
         </p>
 
+        <div class="card-actions">
+          <button type="button" class="fav-btn" data-id="${item.id}">
+            ${fav ? '★ 저장됨' : '☆ 즐겨찾기'}
+          </button>
+          <a class="detail-link" href="detail.html?id=${encodeURIComponent(item.id)}" data-place-id="${item.id}">
+            상세보기
+          </a>
+        </div>
       </div>
-
     </article>
   `;
 }

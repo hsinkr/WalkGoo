@@ -1,31 +1,42 @@
-# WalkGoo v3
+# WalkGoo v7
 
-## 변경 내용
-- 정적 PLACES 데이터 제거
-- 둘레길/섬 여행/올레길·오름 목록을 TourAPI `searchKeyword2`로 동적 조회
-- 테마 카드와 필터 버튼도 API 결과 개수 기준으로 표시
-- 상세 화면에서 `detailCommon2`로 추가 상세 정보 보강
-- API 결과를 LocalStorage에 6시간 캐시
-- 즐겨찾기는 API 캐시 데이터 기준으로 동작
+## v7 변경사항
 
-## 설정
-`js/config.js`에 TourAPI 서비스키를 입력하세요.
+- TourAPI HTTP 429 방지를 위해 `api.js` 호출 방식을 수정했습니다.
+- 기존 v6의 `키워드 × contentTypeId(12/25/28/전체)` 동시 호출을 제거했습니다.
+- 기본은 키워드당 `전체 검색 1회`만 수행합니다.
+- 요청 간 지연(`API_DELAY_MS`)과 429 재시도 로직을 추가했습니다.
+- 저수지/호수/수변길 키워드는 유지했습니다.
 
-```js
-TOUR_API_KEY: '발급받은 TourAPI Decoding 서비스키'
+## 적용 시 주의
+
+ZIP을 덮어쓸 때 기존 `js/config.js`에 입력한 TourAPI 키가 사라질 수 있습니다.
+배포 전 `js/config.js`의 `TOUR_API_KEY`를 다시 확인하세요.
+
+```javascript
+TOUR_API_KEY: '본인 TourAPI 서비스키'
 ```
 
-GitHub Pages에 올리면 브라우저에서 직접 API를 호출합니다. 서비스키 노출이 걱정되면 백엔드 프록시를 두는 구조로 바꾸는 것이 좋습니다.
+## 429가 계속 날 때
 
+1. 10~30분 정도 기다립니다.
+2. 브라우저에서 `Ctrl + F5`를 누릅니다.
+3. 사이트의 API 새로고침 버튼을 반복해서 누르지 않습니다.
+4. 필요하면 `js/config.js`에서 아래처럼 더 느리게 조정합니다.
 
-## v4 변경사항
-- 섬 여행 데이터를 인천권/서해권/남해권/동해권/제주권으로 자동 분류합니다.
-- 오름 검색 키워드를 대폭 확대했습니다.
-- TourAPI 키워드 검색 결과를 기반으로 동적 카드가 생성됩니다.
-- 섬 지역 필터는 `js/data.js`의 `ISLAND_REGIONS`에서 수정할 수 있습니다.
+```javascript
+API_CONCURRENCY: 1,
+API_DELAY_MS: 1200,
+API_RETRY_COUNT: 2,
+API_RETRY_DELAY_MS: 5000
+```
 
-## 정보 확장 아이디어
-- 한국관광공사 TourAPI: 기본 관광지/사진/개요/주소/좌표 조회
-- 해양수산부 바다여행지수: 섬 여행 시 날씨·파도·바람 기반 여행지수 연동
-- 해양수산부 여행지 정보 파일데이터: 섬/어촌/연안 관광 설명 보강
-- VISITJEJU/제주 공공데이터: 오름 데이터 보강
+## 더 많은 결과가 필요할 때
+
+429가 안정된 뒤에만 아래 옵션을 `true`로 변경하세요.
+
+```javascript
+API_TYPE_FALLBACK: true
+```
+
+이 옵션은 0건 키워드에 한해 `contentTypeId` 보조 검색을 추가합니다.

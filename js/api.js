@@ -1,6 +1,6 @@
 const CFG = window.WALKGOO_CONFIG || {};
-const API_CACHE_KEY = 'walkgoo_api_places_v6';
-const API_CACHE_TIME_KEY = 'walkgoo_api_places_v6_time';
+const API_CACHE_KEY = 'walkgoo_api_places_v7';
+const API_CACHE_TIME_KEY = 'walkgoo_api_places_v7_time';
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 
 function favs(){ return JSON.parse(localStorage.getItem('walkgoo_favs') || '[]'); }
@@ -40,22 +40,42 @@ function apiUrl(path, params){
   return `${base}?${sp.toString()}&serviceKey=${normalizeServiceKey(CFG.TOUR_API_KEY)}`;
 }
 
+function sleep(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
+
 async function fetchJson(url, label){
-  debugLog(label, url.replace(/serviceKey=.*/, 'serviceKey=***'));
-  const r = await fetch(url);
-  const text = await r.text();
-  if(!r.ok) throw new Error(`${label} HTTP 오류: ${r.status}`);
-  let j;
-  try { j = JSON.parse(text); }
-  catch(e){
-    const msg = stripHtml(text).slice(0, 220) || text.slice(0, 220);
-    throw new Error(`${label} JSON 응답이 아닙니다. 서비스키/권한/URL을 확인하세요. 응답: ${msg}`);
+  const retryCount = Number(CFG.API_RETRY_COUNT ?? 2);
+  const retryDelay = Number(CFG.API_RETRY_DELAY_MS ?? 3500);
+
+  for(let attempt=0; attempt<=retryCount; attempt++){
+    debugLog(`${label} attempt ${attempt+1}/${retryCount+1}`, url.replace(/serviceKey=.*/, 'serviceKey=***'));
+    const r = await fetch(url);
+    const text = await r.text();
+
+    if(r.status === 429){
+      const wait = retryDelay * (attempt + 1);
+      debugWarn(`${label} HTTP 429: 호출 제한으로 ${wait}ms 대기 후 재시도`);
+      if(attempt < retryCount){
+        await sleep(wait);
+        continue;
+      }
+      throw new Error(`${label} HTTP 오류: 429`);
+    }
+
+    if(!r.ok) throw new Error(`${label} HTTP 오류: ${r.status}`);
+
+    let j;
+    try { j = JSON.parse(text); }
+    catch(e){
+      const msg = stripHtml(text).slice(0, 220) || text.slice(0, 220);
+      throw new Error(`${label} JSON 응답이 아닙니다. 서비스키/권한/URL을 확인하세요. 응답: ${msg}`);
+    }
+
+    const header = j?.response?.header;
+    if(header && header.resultCode && header.resultCode !== '0000'){
+      throw new Error(`${label} API 오류: ${header.resultCode} / ${header.resultMsg || '메시지 없음'}`);
+    }
+    return j;
   }
-  const header = j?.response?.header;
-  if(header && header.resultCode && header.resultCode !== '0000'){
-    throw new Error(`${label} API 오류: ${header.resultCode} / ${header.resultMsg || '메시지 없음'}`);
-  }
-  return j;
 }
 
 function inferThemeByKeyword(keyword){
@@ -118,16 +138,20 @@ const TRAIL_TITLE_PATTERNS = [
 
 function unique(arr){ return [...new Set((arr || []).filter(Boolean))]; }
 
-async function allSettledLimited(tasks, limit=8){
+async function allSettledLimited(tasks, limit=1){
   const results = new Array(tasks.length);
   let next = 0;
+  const delay = Number(CFG.API_DELAY_MS ?? 700);
+
   async function worker(){
     while(next < tasks.length){
       const idx = next++;
+      if(delay > 0) await sleep(delay);
       try { results[idx] = { status:'fulfilled', value: await tasks[idx]() }; }
       catch(e){ results[idx] = { status:'rejected', reason:e }; }
     }
   }
+
   await Promise.all(Array.from({length: Math.min(limit, tasks.length)}, worker));
   return results;
 }
@@ -141,12 +165,11 @@ function trailKeywords(){
   return unique([...base, ...EXTRA_TRAIL_KEYWORDS]);
 }
 function contentTypesForTheme(themeId){
-  // 12 관광지, 25 여행코스, 28 레포츠. 둘레길은 세 분류에 흩어져 있어 모두 조회합니다.
-  if(themeId === 'trail') return ['12','25','28',''];
-  // 오름/올레도 관광지·코스에 섞여 있어 12/25를 함께 조회합니다.
-  if(themeId === 'olle') return ['12','25',''];
-  // 섬은 관광지 중심이지만 누락 방지를 위해 전체 검색도 같이 수행합니다.
-  if(themeId === 'island') return ['12',''];
+  // 429 방지를 위해 기본 검색은 contentTypeId를 넣지 않는 '전체' 1회 호출만 수행합니다.
+  // 필요 시 부족한 키워드에 한해 보조 조회할 때만 아래 분류를 사용합니다.
+  if(themeId === 'trail') return ['25','12','28'];
+  if(themeId === 'olle') return ['12','25'];
+  if(themeId === 'island') return ['12'];
   return ['12'];
 }
 
@@ -166,12 +189,35 @@ async function searchKeywordOnce(keyword, themeId, contentTypeId, rows='100'){
 }
 
 async function searchKeyword(keyword, themeId){
-  const types = contentTypesForTheme(themeId);
-  const jobs = types.map(ct => searchKeywordOnce(keyword, themeId, ct));
-  const settled = await Promise.allSettled(jobs);
-  const failed = settled.filter(x => x.status === 'rejected');
-  if(failed.length) debugWarn(`키워드 ${keyword} 일부 실패`, failed.map(x => x.reason?.message || x.reason));
-  let result = dedupePlaces(settled.flatMap(x => x.status === 'fulfilled' ? x.value : []));
+  // 중요: v6의 keyword × contentTypeId 동시 다중 호출 방식은 HTTP 429를 유발했습니다.
+  // v7은 먼저 '전체' 1회만 조회하고, 결과가 없을 때만 선택적으로 1~2회 보조 조회합니다.
+  let result = [];
+
+  try{
+    result = await searchKeywordOnce(keyword, themeId, '', CFG.API_ROWS || '50');
+  }catch(e){
+    debugWarn(`키워드 ${keyword} 전체 검색 실패`, e?.message || e);
+  }
+
+  if(themeId === 'trail') result = result.filter(isTrailLike);
+  result = dedupePlaces(result);
+
+  const allowFallback = String(CFG.API_TYPE_FALLBACK || 'false').toLowerCase() === 'true';
+  if(result.length > 0 || !allowFallback) return result;
+
+  const maxFallback = Number(CFG.API_MAX_TYPE_FALLBACK || 1);
+  const fallbackTypes = contentTypesForTheme(themeId).slice(0, maxFallback);
+  const more = [];
+  for(const ct of fallbackTypes){
+    await sleep(Number(CFG.API_DELAY_MS ?? 700));
+    try{
+      more.push(...await searchKeywordOnce(keyword, themeId, ct, CFG.API_ROWS || '50'));
+    }catch(e){
+      debugWarn(`키워드 ${keyword}/${ct} 보조 검색 실패`, e?.message || e);
+    }
+  }
+
+  result = dedupePlaces([...result, ...more]);
   if(themeId === 'trail') result = result.filter(isTrailLike);
   return result;
 }
@@ -197,8 +243,8 @@ async function fetchWalkgooPlaces(force=false){
     const keywords = theme.id === 'trail' ? trailKeywords() : theme.keywords;
     unique(keywords).forEach(keyword => jobs.push(() => searchKeyword(keyword, theme.id)));
   });
-  // data.go.kr/TourAPI 호출이 너무 한꺼번에 몰리면 실패/누락이 생길 수 있어 동시 호출 수를 제한합니다.
-  const settled = await allSettledLimited(jobs, Number(CFG.API_CONCURRENCY || 8));
+  // data.go.kr/TourAPI 429 방지를 위해 기본값은 순차 호출입니다. 필요할 때만 config.js에서 2 정도로 올리세요.
+  const settled = await allSettledLimited(jobs, Number(CFG.API_CONCURRENCY || 1));
   const failed = settled.filter(x => x.status === 'rejected');
   if(failed.length) debugWarn('실패한 API 호출', failed.map(x => x.reason?.message || x.reason));
   const places = dedupePlaces(settled.flatMap(x => x.status === 'fulfilled' ? x.value : []))

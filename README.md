@@ -32,3 +32,29 @@ git push
 ```
 
 브라우저에서 `Ctrl + F5`로 강력 새로고침하세요.
+
+## v8 - 두루누비 API 추가
+
+- 한국관광공사_두루누비 정보 서비스_GW 연동 추가
+- `js/config.js`에 `DURUNUBI_API_KEY`, `DURUNUBI_API_BASE`, `USE_DURUNUBI_API` 옵션 추가
+- 둘레길 데이터는 두루누비 `/routeList`, `/courseList`를 우선 사용
+- TourAPI는 섬/오름/저수지·호수길 보강용으로 유지
+- TourAPI 쿼터 초과 시 `USE_TOUR_API: false`로 설정하면 두루누비 데이터만 표시 가능
+
+### config.js 예시
+
+```javascript
+window.WALKGOO_CONFIG = {
+  TOUR_API_KEY: 'TourAPI_서비스키',
+  TOUR_API_BASE: 'https://apis.data.go.kr/B551011/KorService2',
+
+  DURUNUBI_API_KEY: '두루누비_서비스키',
+  DURUNUBI_API_BASE: 'https://apis.data.go.kr/B551011/Durunubi',
+  USE_DURUNUBI_API: true,
+  USE_TOUR_API: true,
+
+  DEBUG_API: true,
+  API_CONCURRENCY: 1,
+  API_DELAY_MS: 900
+};
+```

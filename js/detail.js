@@ -1,5 +1,6 @@
 
 let p = findCachedPlace(new URLSearchParams(location.search).get('id'));
+
 async function enrich(){
   if(!p) return;
   try{
@@ -132,24 +133,87 @@ function getCategoryIcon(p) {
   return map[key] || '🥾';
 }
 
-function renderMap(){
-  const help = document.getElementById('mapHelp'), box = document.getElementById('map');
-  
-  if(!p?.lat || !p?.lng){ box.textContent='좌표 정보가 없습니다.'; return; }
-  if(!CFG.KAKAO_JS_KEY){
-    box.innerHTML = `<a class="btn primary" target="_blank" href="https://map.kakao.com/link/map/${encodeURIComponent(p.title)},${p.lat},${p.lng}">카카오맵에서 보기</a>`;
-    help.textContent = 'KAKAO_JS_KEY를 입력하면 페이지 안에 지도가 표시됩니다.'; return;
+function renderMap() {
+  const help = document.getElementById('mapHelp');
+  const box = document.getElementById('map');
+
+  if (!p?.lat || !p?.lng) {
+    box.innerHTML = '좌표 정보가 없습니다.';
+    return;
   }
-  
-  const s = document.createElement('script');
-  s.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${CFG.KAKAO_JS_KEY}&autoload=false`;
-  s.onload = () => kakao.maps.load(() => {
-    const pos = new kakao.maps.LatLng(p.lat,p.lng);
-    const map = new kakao.maps.Map(box,{center:pos,level:4});
-    new kakao.maps.Marker({map,position:pos,title:p.title});
-  });
-  
-  document.head.appendChild(s);
+
+  const kakaoKey = window.WALKGOO_CONFIG?.KAKAO_JS_KEY || '';
+
+  if (!kakaoKey) {
+    box.innerHTML = `
+      <a class="btn primary"
+         target="_blank"
+         href="https://map.kakao.com/link/map/${encodeURIComponent(p.title)},${p.lat},${p.lng}">
+         카카오맵에서 보기
+      </a>
+    `;
+
+    if (help) {
+      help.textContent = 'KAKAO_JS_KEY를 입력하면 페이지 안에 지도가 표시됩니다.';
+    }
+
+    return;
+  }
+
+  const script = document.createElement('script');
+  script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoKey}&autoload=false`;
+
+  script.onload = () => {
+    kakao.maps.load(() => {
+      const pos = new kakao.maps.LatLng(p.lat, p.lng);
+      const map = new kakao.maps.Map(box, {
+        center: pos,
+        level: 5
+      });
+
+      new kakao.maps.Marker({
+        map,
+        position: pos,
+        title: p.title
+      });
+    });
+  };
+
+  document.head.appendChild(script);
+}
+
+function getTagClass(tag) {
+
+  const map = {
+
+    // 섬 여행
+    '섬'      : 'tag-island',
+    '인천권'  : 'tag-island',
+    '서해'    : 'tag-island',
+    '남해'    : 'tag-island',
+    '동해'    : 'tag-island',
+    '제주권'  : 'tag-island',
+
+    // 오름
+    '오름'    : 'tag-oreum',
+    '제주'    : 'tag-oreum',
+
+    // 둘레길
+    '둘레길'      : 'tag-trail',
+    '코리아둘레길' : 'tag-trail',
+    '숲길'        : 'tag-trail',
+
+    // 호수길
+    '저수지' : 'tag-water',
+    '호수길' : 'tag-water',
+    '수변길' : 'tag-water',
+    '해안길' : 'tag-water',
+
+    // 도시
+    '도시 산책길' : 'tag-urban'
+};
+
+  return map[tag] || 'tag-default';
 }
 
 (async()=>{ render(); await enrich(); render(); })();

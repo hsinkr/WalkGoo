@@ -34,8 +34,7 @@ function renderIslandRegions(){
     islandRegionActions.style.display = 'none';
     return;
   }
-  isl
-  andRegionActions.style.display = 'flex';
+  islandRegionActions.style.display = 'flex';
   islandRegionActions.innerHTML = `<button class="chip region-chip ${currentIslandRegion==='all'?'active':''}" data-region="all">섬 전체 ${countByIslandRegion('all')}</button>` +
     ISLAND_REGIONS.map(r => `<button class="chip region-chip ${currentIslandRegion===r.id?'active':''}" data-region="${r.id}">${r.name} ${countByIslandRegion(r.id)}</button>`).join('');
   document.querySelectorAll('.region-chip').forEach(c => c.onclick = () => {
